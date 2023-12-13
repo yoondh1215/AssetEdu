@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+      "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.kfs.assetedu.repository.Com03DateRepository">
+   <sql id="whereCondition">
+		<!--    검색조건 -->
+   		<if test="year != null and year != ''">
+	       	AND com03_day like #{year}
+		</if>
+   </sql>
+   
+	<select id="selectCount" parameterType="Condition" resultType="Integer">
+   		SELECT 
+   			count(*) as count
+   		FROM
+   			com03_date
+   		WHERE 1=1
+   			<include refid="whereCondition"/>	
+   </select> 
+   
+   <select id="selectList" parameterType="Condition" resultType="Com03Date">
+	   SELECT 
+			com03_day        as com03Day,        /** 일*/      
+			com03_weekday    as com03Weekday,    /** 요일*/      
+			com03_biz_yn     as com03BizYn,      /** 영업일여부*/       
+			com03_note       as com03Note        /** 비고*/
+	   FROM 
+	   		com03_date
+	   WHERE 1=1
+	   	<include refid="whereCondition"/>
+	   ORDER BY com03_day	
+		<if test="offset != null and offset != null">
+	      	OFFSET #{offset}
+		</if>   
+		 <if test="limit != null and limit != null">
+		 	LIMIT #{limit}
+		 </if>
+   </select>
+
+   <select id="selectOne" parameterType="Com03Date" resultType="Com03Date">
+	   SELECT 
+            com03_day        as com03Day,        /** 일*/      
+            com03_weekday    as com03Weekday,    /** 요일*/      
+            com03_biz_yn     as com03BizYn,      /** 영업일여부*/       
+            com03_note       as com03Note        /** 비고*/
+	   FROM 
+	   		com03_date
+	   WHERE 1=1
+	       	AND com03_day  = #{com03Day}
+   </select>
+   
+   <select id="selectListByPeriod" parameterType="Condition" resultType="Com03Date">
+       SELECT 
+            com03_day        as com03Day,        /** 일*/      
+            com03_weekday    as com03Weekday,    /** 요일*/      
+            com03_biz_yn     as com03BizYn,      /** 영업일여부*/       
+            com03_note       as com03Note        /** 비고*/
+       FROM 
+            com03_date
+       WHERE 1=1
+         AND com03_day BETWEEN #{startDate} AND #{closeDate}
+       ORDER BY com03_day
+   </select>
+   
+   <select id="selectBizDate" parameterType="Condition" resultType="String">
+        SELECT MAX(com03_day)   as com03Day
+          FROM (
+		         SELECT com03_day
+		           FROM com03_date
+		          WHERE com03_biz_yn = 'true'
+		            AND com03_day <![CDATA[>]]> #{stdDate}
+		          ORDER BY com03_day
+		          LIMIT #{days}
+		       ) t
+   </select>
+   
+   <select id="getDate" parameterType="Condition" resultType="String">
+        SELECT f_get_date(#{date}, #{period})
+   </select>
+   
+   <insert id="insert" parameterType="Com03Date">
+    INSERT INTO public.com03_date(
+		com03_day, com03_weekday, com03_biz_yn, com03_note
+	)
+	VALUES (
+		#{com03Day}, #{com03Weekday}, #{com03BizYn}, #{com03Note}
+	)
+   </insert> 
+   
+   <update id="update" parameterType="Com03Date">
+      UPDATE  
+      	com03_date 
+      SET
+		com03_day     = #{com03Day},      /** 일*/      
+		com03_weekday = #{com03Weekday},  /** 요일*/      
+		com03_biz_yn  = #{com03BizYn},    /** 영업일여부*/       
+		com03_note    = #{com03Note}      /** 비고*/
+	   WHERE 1=1
+       	AND com03_day = #{com03Day}
+   </update>
+       
+   <delete id="delete" parameterType="Com03Date">
+      DELETE FROM
+      	com03_date
+	   WHERE 1=1
+	       	AND com03_day  = #{com03Day}
+   </delete>    
+
+</mapper>

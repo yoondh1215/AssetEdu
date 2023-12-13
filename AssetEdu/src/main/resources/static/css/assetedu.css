@@ -1,0 +1,4 @@
+@charset "UTF-8";
+input[readonly="true"] {
+  background-color:  red !important;
+}
