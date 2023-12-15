@@ -15,4 +15,10 @@ public class Sys01User{
 
 	@NotNull	
 	transient private String sys01Pwd; //사용자 password
+	
+	@NotNull
+	private String sys01Tel;
+
+	@NotNull
+	private String sys01Email;
 }

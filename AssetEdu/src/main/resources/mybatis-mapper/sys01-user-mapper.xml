@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+      "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.kfs.assetedu.repository.Sys01UserRepository">
+
+   <sql id="whereConditon">
+		<!--    검색조건 -->
+   		<if test="sys01UserId != null">
+	       	AND sys01_user_id = #{sys01UserId}
+		</if>		
+   		<if test="searchText != null">
+	       	AND upper(concat(sys02_short,sys02_full,sys02_kor_nm,sys02_note)) like concat('%',upper(#{searchText}),'%')
+		</if>
+   </sql>	
+   
+	<select id="selectCount" parameterType="Condition" resultType="Integer">
+   		SELECT 
+   			count(*) as count
+   		FROM
+   			sys01_user
+   		WHERE 1=1
+   			<include refid="whereConditon"/>	
+   </select> 
+   
+   <select id="selectList" resultType="Sys01User">
+	   SELECT
+	           sys01_user_id as sys01UserId 
+             , sys01_user_nm as sys01UserNm 
+             , sys01_pwd as sys01Pwd 
+             , sys01_tel as sys01Tel 
+             , sys01_email as sys01Email 
+	   FROM 
+	   		sys01_user 
+	   WHERE 1=1
+	
+   </select>
+
+   <select id="selectOne" parameterType="Sys01User" resultType="Sys01User">
+	   SELECT
+	           sys01_user_id as sys01UserId 
+             , sys01_user_nm as sys01UserNm 
+             , sys01_pwd as sys01Pwd 
+             , sys01_tel as sys01Tel 
+             , sys01_email as sys01Email 
+	   FROM 
+	   		sys01_user 
+	   WHERE 1=1
+	   	AND sys01_user_id = #{sys01UserId}
+   </select>
+   
+   <select id="getDictId" resultType="String">
+        SELECT f_seq()
+   </select>
+   
+   <insert id="insert" parameterType="Sys01User">
+      INSERT INTO sys01_user
+      	( sys01_user_id, sys01_user_nm, sys01_pwd, sys01_tel, sys01_email )
+      VALUES 
+      	( #{sys01UserId}, #{sys01UserNm}, #{sys01Pwd}, #{sys01Tel}, #{sys01Email} )
+   </insert> 
+   
+   <update id="update" parameterType="Sys02Dict">
+      UPDATE  
+      	    sys02_dict 
+      SET
+	        sys02_short    = #{sys02Short}
+	      , sys02_full     = #{sys02Full}
+	      , sys02_kor_nm   = #{sys02KorNm}
+	      , sys02_note     = #{sys02Note}
+      WHERE 1=1
+	     AND sys02_dict_id = #{sys02DictId}
+   </update>
+       
+   <delete id="delete" parameterType="Sys02Dict">
+      DELETE FROM
+        	sys02_dict
+      WHERE 1=1
+      	 AND sys02_dict_id = #{sys02DictId}
+   </delete>    
+
+</mapper>
