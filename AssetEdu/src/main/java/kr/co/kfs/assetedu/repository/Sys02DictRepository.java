@@ -2,13 +2,13 @@ package kr.co.kfs.assetedu.repository;
 
 import java.util.List;
 
-import kr.co.kfs.assetedu.model.Condition;
+import kr.co.kfs.assetedu.model.QueryAttr;
 import kr.co.kfs.assetedu.model.Sys02Dict;
 
 public interface Sys02DictRepository {
 	// list and totalcount
-	List<Sys02Dict> selectList(Condition condition);
-	Integer selectCount(Condition condition);
+	List<Sys02Dict> selectList(QueryAttr condition);
+	Integer selectCount(QueryAttr condition);
 	
 	String getDictId();
 	

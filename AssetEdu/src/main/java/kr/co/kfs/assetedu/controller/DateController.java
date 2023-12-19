@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import kr.co.kfs.assetedu.model.ApiData;
-import kr.co.kfs.assetedu.model.Condition;
+import kr.co.kfs.assetedu.model.QueryAttr;
 import kr.co.kfs.assetedu.service.Com03DateService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,7 +40,7 @@ public class DateController {
 		log.debug("★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★");
 		log.debug(" D+days 영업일 가져오기");
 		log.debug("★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★");
-		Condition condition = new Condition();
+		QueryAttr condition = new QueryAttr();
 		condition.put("stdDate", stdDate);
 		condition.put("days", days);
 		String bizDate = service.selectBizDate(condition);

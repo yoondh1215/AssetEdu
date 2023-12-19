@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class PageCondition extends Condition {
+public class PageCondition extends QueryAttr {
 	private static final long serialVersionUID = 1L;
 	
 	private PageAttr pageAttr;

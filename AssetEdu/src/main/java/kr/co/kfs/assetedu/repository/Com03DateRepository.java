@@ -3,21 +3,21 @@ package kr.co.kfs.assetedu.repository;
 import java.util.List;
 
 import kr.co.kfs.assetedu.model.Com03Date;
-import kr.co.kfs.assetedu.model.Condition;
+import kr.co.kfs.assetedu.model.QueryAttr;
 
 public interface Com03DateRepository {
 	// list and totalcount
-	List<Com03Date> selectList(Condition condition);
-	Integer selectCount(Condition condition);
+	List<Com03Date> selectList(QueryAttr condition);
+	Integer selectCount(QueryAttr condition);
 	
 	// CRUD
-	List<Com03Date> selectListByPeriod(Condition condition);
+	List<Com03Date> selectListByPeriod(QueryAttr condition);
 	Com03Date selectOne(Com03Date date);
 
 	int insert(Com03Date date);
 	int update(Com03Date date);
 	int delete(Com03Date date);
 	
-	String selectBizDate(Condition condition);
-	String getDate(Condition condition);
+	String selectBizDate(QueryAttr condition);
+	String getDate(QueryAttr condition);
 }

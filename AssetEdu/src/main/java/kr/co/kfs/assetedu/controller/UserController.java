@@ -33,7 +33,7 @@ public class UserController {
 		log.debug("===================================");
 		log.debug("사용자리스트");
 		log.debug("===================================");
-		List<Sys01User> list = service.selectList();
+		List<Sys01User> list = service.selectList(searchText);
 		model.addAttribute("list", list);
 		return "/admin/user/list";
 	}
@@ -79,8 +79,31 @@ public class UserController {
 	}
 
 	
+	@GetMapping("update")
+	public String update(String sys01UserId, Model model) {
+		Sys01User user = new Sys01User();
+		user.setSys01UserId(sys01UserId);
+		user = service.selectOne(user);
+		model.addAttribute("user",user);
+		return "/admin/user/update";
+	}
+	
+	@PostMapping("update")
+	public String update(Sys01User user, Model model) {
+		int i = service.update(user);
+		model.addAttribute("userId", user.getSys01UserId());
+		return "redirect:/admin/user/list";
+	}
 	
 	
+	
+	@GetMapping("delete")
+	public String delete(String sys01UserId) {
+		Sys01User user = new Sys01User();
+		user.setSys01UserId(sys01UserId);
+		service.delete(user);
+		return "redirect:/admin/user/list";
+	}
 	
 	
 	}

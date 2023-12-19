@@ -2,7 +2,7 @@ package kr.co.kfs.assetedu.repository;
 
 import java.util.List;
 
-import kr.co.kfs.assetedu.model.Condition;
+import kr.co.kfs.assetedu.model.QueryAttr;
 import kr.co.kfs.assetedu.model.Sys01User;
 import kr.co.kfs.assetedu.model.Sys02Dict;
 
@@ -10,9 +10,9 @@ public interface Sys01UserRepository {
 	
 	// list and totalcount
 	
-	List<Sys01User> selectList();
+	List<Sys01User> selectList(String searchText);
 	
-	Integer selectCount(Condition condition);
+	Integer selectCount(QueryAttr condition);
 	
 	String getUserId();
 	

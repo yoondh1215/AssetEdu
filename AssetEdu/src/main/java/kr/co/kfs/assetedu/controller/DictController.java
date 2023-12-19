@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import kr.co.kfs.assetedu.model.ApiData;
-import kr.co.kfs.assetedu.model.Condition;
+import kr.co.kfs.assetedu.model.QueryAttr;
 import kr.co.kfs.assetedu.model.Sys02Dict;
 import kr.co.kfs.assetedu.service.Sys02DictService;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +36,7 @@ public class DictController {
 		log.debug("★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★");
 		model.addAttribute("pageTitle","용어사전 리스트");
 		
-		Condition condition = new Condition();
+		QueryAttr condition = new QueryAttr();
 		condition.put("searchText", searchText);
 		List<Sys02Dict> list = service.selectList(condition);
 

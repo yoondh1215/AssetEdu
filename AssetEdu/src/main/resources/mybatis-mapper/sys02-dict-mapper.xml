@@ -13,7 +13,7 @@
 	       	AND upper(concat(sys02_short,sys02_full,sys02_kor_nm,sys02_note)) like concat('%',upper(#{searchText}),'%')
 		</if>
    </sql>	
-	<select id="selectCount" parameterType="Condition" resultType="Integer">
+	<select id="selectCount" parameterType="QueryAttr" resultType="Integer">
    		SELECT 
    			count(*) as count
    		FROM
@@ -22,7 +22,7 @@
    			<include refid="whereConditon"/>	
    </select> 
    
-   <select id="selectList" parameterType="Condition" resultType="Sys02Dict">
+   <select id="selectList" parameterType="QueryAttr" resultType="Sys02Dict">
 	   SELECT
 	           sys02_dict_id
              , sys02_short

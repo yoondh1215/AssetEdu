@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import kr.co.kfs.assetedu.model.Condition;
+import kr.co.kfs.assetedu.model.QueryAttr;
 import kr.co.kfs.assetedu.model.Sys02Dict;
 import kr.co.kfs.assetedu.repository.Sys02DictRepository;
 
@@ -21,11 +21,11 @@ public class Sys02DictService  {
 		return dictRepository.selectOne(user);
 	}
 	
-	public List<Sys02Dict> selectList(Condition condition){
+	public List<Sys02Dict> selectList(QueryAttr condition){
 		return dictRepository.selectList(condition);
 	}
 	
-	public Integer selectCount(Condition condition){
+	public Integer selectCount(QueryAttr condition){
 		return dictRepository.selectCount(condition);
 	}
 	

@@ -15,7 +15,7 @@
 		</if>
    </sql>	
    
-	<select id="selectCount" parameterType="Condition" resultType="Integer">
+	<select id="selectCount" parameterType="QueryAttr" resultType="Integer">
    		SELECT 
    			count(*) as count
    		FROM
@@ -24,7 +24,7 @@
    			<include refid="whereConditon"/>	
    </select> 
    
-   <select id="selectList" resultType="Sys01User">
+   <select id="selectList" parameterType="string"  resultType="Sys01User">
 	   SELECT
 	           sys01_user_id as sys01UserId 
              , sys01_user_nm as sys01UserNm 
@@ -33,7 +33,10 @@
              , sys01_email as sys01Email 
 	   FROM 
 	   		sys01_user 
-	   WHERE 1=1
+	   WHERE 1=1 
+		   <if test="searchText != null">
+			   AND sys01_user_id like concat('%',lower(#{searchText}),'%')
+		   </if>
 	
    </select>
 
@@ -61,23 +64,23 @@
       	( #{sys01UserId}, #{sys01UserNm}, #{sys01Pwd}, #{sys01Tel}, #{sys01Email} )
    </insert> 
    
-   <update id="update" parameterType="Sys02Dict">
+   <update id="update" parameterType="Sys01User">
       UPDATE  
-      	    sys02_dict 
-      SET
-	        sys02_short    = #{sys02Short}
-	      , sys02_full     = #{sys02Full}
-	      , sys02_kor_nm   = #{sys02KorNm}
-	      , sys02_note     = #{sys02Note}
+      	    sys01_user 
+      SET 
+		sys01_user_nm = #{sys01UserNm} , 
+		sys01_pwd = #{sys01Pwd} , 
+		sys01_tel = #{sys01Tel} , 
+		sys01_email = #{sys01Email} 
       WHERE 1=1
-	     AND sys02_dict_id = #{sys02DictId}
+	     AND sys01_user_id = #{sys01UserId} 
    </update>
        
-   <delete id="delete" parameterType="Sys02Dict">
-      DELETE FROM
-        	sys02_dict
-      WHERE 1=1
-      	 AND sys02_dict_id = #{sys02DictId}
+   <delete id="delete" parameterType="Sys01User">
+      DELETE FROM 
+        	sys01_user 
+      WHERE 1=1 
+      	 AND sys01_user_id = #{sys01UserId}
    </delete>    
 
 </mapper>

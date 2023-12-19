@@ -37,7 +37,7 @@ class ConditionTest {
 	
 	@Test
 	void test2() {
-		Condition condition = new Condition();
+		QueryAttr condition = new QueryAttr();
 		PageAttr pageAttr = new PageAttr(130L, 10);
 		
 		condition.put("name", "홍길동");
