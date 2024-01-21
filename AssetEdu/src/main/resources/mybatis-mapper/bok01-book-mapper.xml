@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+      "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.kfs.assetedu.repository.Bok01BookRepository">
+   <!--  보유원장  -->
+   <sql id="whereCondition">
+		<!--    검색조건 -->
+   		<if test="bok01BookId != null">
+	       	AND bok01_book_id = #{bok01BookId}
+		</if>
+   		<if test="searchText != null and searchText != ''">
+	       	AND concat(fnd01_fund_nm,itm01_item_nm, bok01_book_id) like concat('%',#{searchText}, '%')
+		</if>
+		<if test="frHoldDate != null and frHoldDate != ''">
+	       	AND bok01_hold_date <![CDATA[ >= ]]> #{frHoldDate}
+		</if>
+		<if test="toHoldDate != null and toHoldDate != ''">
+	       	AND bok01_hold_date <![CDATA[ <= ]]> #{toHoldDate}
+		</if>
+        <if test="holdDate != null and holdDate != ''">
+            AND bok01_hold_date = #{holdDate}
+        </if>
+   </sql>	
+	<select id="selectCount" parameterType="QueryAttr" resultType="Long">
+   		SELECT 
+   			count(A.*) as count
+   		FROM
+   			bok01_book A
+            inner join fnd01_fund B ON A.bok01_fund_cd = B.fnd01_fund_cd            
+            inner join itm01_item C ON A.bok01_item_cd = C.itm01_item_cd    
+   		WHERE 1=1
+   			<include refid="whereCondition"/>	
+   </select> 
+   
+
+   <select id="selectList" parameterType="QueryAttr" resultType="Bok01Book">
+        SELECT
+			  A.bok01_book_id   as bok01BookId   /** 원장id */ 
+			, A.bok01_hold_date as bok01HoldDate /** 보유일자 */ 
+			, A.bok01_fund_cd   as bok01FundCd   /** 펀드코드 */ 
+			, A.bok01_item_cd   as bok01ItemCd   /** 종목코드 */ 
+			, A.bok01_hold_qty  as bok01HoldQty  /** 보유수량 */ 
+			, A.bok01_pur_amt   as bok01PurAmt   /** 취득금액 */ 
+			, A.bok01_book_amt  as bok01BookAmt  /** 장부금액 */ 
+			, A.bok01_eval_amt  as bok01EvalAmt  /** 평가금액 */ 
+			, A.bok01_eval_pl   as bok01EvalPl   /** 평가손익 */ 
+            , A.bok01_eval_yn   as bok01EvalYn   /** 평가여부 */
+            , B.fnd01_fund_cd                         as fnd01FundCd         /** 펀드코드 */                    
+            , B.fnd01_fund_nm                         as fnd01FundNm         /** 펀드명 */                     
+            , B.fnd01_fund_type                       as fnd01FundType       /** 펀드유형(FundType) */          
+            , B.fnd01_public_cd                       as fnd01PublicCd       /** 공모/사모코드(PublicCode) */     
+            , B.fnd01_unit_cd                         as fnd01UnitCd         /** 펀드단위코드(FundUnitCode) */    
+            , B.fnd01_parent_cd                       as fnd01ParentCd       /** 모자구분코드(FundParentCode) */  
+            , B.fnd01_parent_fund_cd                  as fnd01ParentFundCd   /** 모펀드코드 */                   
+            , B.fnd01_start_date                      as fnd01StartDate      /** 설정일자 */                    
+            , B.fnd01_end_date                        as fnd01EndDate        /** 해지일자 */                    
+            , B.fnd01_acc_period                      as fnd01AccPeriod      /** 회계기간(개월) */                
+            , B.fnd01_first_close_date                as fnd01FirstCloseDate /** 최초결산일자 */                  
+            , B.fnd01_cur_cd                          as fnd01CurCd          /** 기준통화(CurCode) */           
+            , B.fnd01_ksd_item_cd                     as fnd01KsdItemCd      /** 예탁원종목코드 */                 
+            , B.fnd01_kofia_cd                        as fnd01KofiaCd        /** 협회표준코드 */                  
+            , B.fnd01_kofia_class_cd                  as fnd01KofiaClassCd   /** 협회상품분류코드 */               
+            , B.fnd01_fss_cd                          as fnd01FssCd          /** 금감원펀드코드 */                 
+            , B.fnd01_manager                         as fnd01Manager        /** 주운용역 */                    
+            , B.fnd01_sub_manager                     as fnd01SubManager     /** 부운용역 */                    
+            , B.fnd01_mng_co_cd                       as fnd01MngCoCd        /** 운용사코드 */                   
+            , B.fnd01_trust_co_cd                     as fnd01TrustCoCd      /** 수탁사코드 */                   
+            , B.fnd01_office_co_cd                    as fnd01OfficeCoCd     /** 사무관리사(주)코드 */             
+            , B.fnd01_sub_office_co_cd                as fnd01SubOfficeCoCd  /** 사무관리사(부)코드 */             
+            , f_com_nm('FundType' , B.fnd01_fund_type)  as fnd01FundTypeNm     /** 펀드유형명 */                   
+            , f_com_nm('PublicCode'    , B.fnd01_public_cd) as fnd01PublicNm       /** 공모/사모코드명 */                
+            , f_com_nm('FundUnitCode'  , B.fnd01_unit_cd)   as fnd01UnitNm         /** 펀드단위코드명 */                 
+            , CASE WHEN B.fnd01_parent_fund_cd IS NULL THEN ''                                      
+                    ELSE ( SELECT p.fnd01_fund_nm                                                   
+                             FROM fnd01_fund p                                                      
+                            WHERE p.fnd01_fund_cd = B.fnd01_parent_fund_cd )             
+                   END                                    as fnd01ParentFundNm   /** 모펀드명 */                        
+            , f_corp_nm(B.fnd01_mng_co_cd)                as fnd01MngCoNm        /** 운용사명 */           
+            , f_corp_nm(B.fnd01_trust_co_cd)              as fnd01TrustCoNm      /** 수탁사명 */           
+            , f_corp_nm(B.fnd01_office_co_cd)             as fnd01OfficeCoNm     /** 사무관리사(주)명 */   
+            , f_corp_nm(B.fnd01_sub_office_co_cd)         as fnd01SubOfficeCoNm  /** 사무관리사(부)명 */
+			, C.itm01_item_cd                             as itm01ItemCd       /** 종목코드*/                        
+			, C.itm01_item_nm                             as itm01ItemNm       /** 종목명*/                         
+			, C.itm01_item_enm                            as itm01ItemEnm      /** 영문명*/                         
+			, C.itm01_short_cd                            as itm01ShortCd      /** 단축코드*/                        
+			, C.itm01_iss_type                            as itm01IssType      /** 발행구분(StkIssType:공모/사모)*/      
+			, C.itm01_stk_type                            as itm01StkType      /** 증권종류(StkType:보통주/우선주/..)*/    
+			, C.itm01_list_type                           as itm01ListType     /** 상장구분(ListType:상장/비상장/상장폐지)*/  
+			, C.itm01_market_type                         as itm01MarketType   /** 시장구분(MarketType:코스피/코스닥/..)*/ 
+			, C.itm01_par                                 as itm01Par          /** 액면가*/                         
+			, C.itm01_iss_co_cd                           as itm01IssCoCd      /** 발행기관코드*/
+	        , f_com_nm('StkIssType' ,C.itm01_iss_type   ) as itm01IssTypeNm    /** 발행구분명*/      
+	        , f_com_nm('StkType'    ,C.itm01_stk_type   ) as itm01StkTypeNm    /** 증권종류명*/    
+	        , f_com_nm('ListType'   ,C.itm01_list_type  ) as itm01ListTypeNm   /** 상장구분명*/  
+	        , f_com_nm('MarketType' ,C.itm01_market_type) as itm01MarketTypeNm /** 시장구분명*/ 
+	        , f_corp_nm(C.itm01_iss_co_cd)                as itm01IssCoNm      /** 발행기관코드명*/            
+	   FROM 
+	   		bok01_book A 
+			inner join fnd01_fund B ON A.bok01_fund_cd = B.fnd01_fund_cd	   		
+			inner join itm01_item C ON A.bok01_item_cd = C.itm01_item_cd	
+	   	<include refid="whereCondition"/>
+	   	ORDER BY A.bok01_hold_date, bok01_fund_cd, bok01_item_cd	   	
+		<if test="offset != null and offset != ''">
+	      	OFFSET #{offset}
+		</if>   
+		 <if test="limit != null and limit != ''">
+		 	LIMIT #{limit}
+		 </if>
+   </select>
+
+   <select id="selectOne" parameterType="Bok01Book" resultType="Bok01Book">
+	   SELECT 
+			  bok01_book_id   as bok01BookId   /** 원장id */ 
+			, bok01_hold_date as bok01HoldDate /** 보유일자 */ 
+			, bok01_fund_cd   as bok01FundCd   /** 펀드코드 */ 
+			, bok01_item_cd   as bok01ItemCd   /** 종목코드 */ 
+			, bok01_hold_qty  as bok01HoldQty  /** 보유수량 */ 
+			, bok01_pur_amt   as bok01PurAmt   /** 취득금액 */ 
+			, bok01_book_amt  as bok01BookAmt  /** 장부금액 */ 
+			, bok01_eval_amt  as bok01EvalAmt  /** 평가금액 */ 
+			, bok01_eval_pl   as bok01EvalPl   /** 평가손익 */
+            , bok01_eval_yn   as bok01EvalYn   /** 평가여부 */
+	   FROM 
+	   		bok01_book
+	   WHERE 1=1
+		<if test="bok01BookId != null">
+	       	AND bok01_book_id = #{bok01BookId}
+		</if>
+        <if test="bok01HoldDate != null">
+            AND bok01_hold_date = #{bok01HoldDate}
+        </if>
+   </select>
+
+	<!-- 평가 리스트. 처리 완료된걸 가져오기 위해 평가처리 거래코드 3001인 것과 statusCd 	 1 처리완료 가져옴. -->
+   <select id="selectEvalList" parameterType="QueryAttr" resultType="Bok01Book">
+        SELECT bok01_book_id   as bok01BookId   /** 원장id */ 
+             , bok01_hold_date as bok01HoldDate /** 보유일자 */ 
+             , bok01_fund_cd   as bok01FundCd   /** 펀드코드 */ 
+             , bok01_item_cd   as bok01ItemCd   /** 종목코드 */ 
+             , bok01_hold_qty  as bok01HoldQty  /** 보유수량 */ 
+             , bok01_pur_amt   as bok01PurAmt   /** 취득금액 */ 
+             , bok01_book_amt  as bok01BookAmt  /** 장부금액 */ 
+             , bok01_eval_amt  as bok01EvalAmt  /** 평가금액 */ 
+             , bok01_eval_pl   as bok01EvalPl   /** 평가손익 */
+             , bok01_eval_yn   as bok01EvalYn   /** 평가여부 */
+             , COALESCE(itm02_apply_price,0)                                                  as bok01EvalPrice
+             , CASE WHEN COALESCE(bok01_eval_yn,'false') = 'true' THEN '완료' ELSE '미처리' END  as bok01EvalYnStr
+             , opr01_cont_id                                                                  as bok01ContId
+             , itm01_item_nm   as itm01ItemNm
+             , fnd01_fund_nm   as fnd01FundNm
+          FROM bok01_book
+               INNER JOIN fnd01_fund ON fnd01_fund_cd = bok01_fund_cd
+               INNER JOIN itm01_item ON itm01_item_cd = bok01_item_cd
+               LEFT OUTER JOIN itm02_eval_price ON ( itm02_item_cd    = bok01_item_cd   AND
+                                                     itm02_apply_date = bok01_hold_date )
+               LEFT OUTER JOIN opr01_cont ON ( opr01_cont_date = bok01_hold_date    AND
+                                               opr01_book_id   = bok01_book_id      AND
+                                               opr01_tr_cd     = '3001'             AND
+                                               opr01_status_cd = '1'                )
+         WHERE bok01_hold_date = #{evalDate}
+         <if test="searchText != null and searchText != ''">
+           AND upper(concat(fnd01_fund_cd,fnd01_fund_nm,itm01_item_cd,itm01_item_nm)) like upper(concat('%',#{searchText}, '%'))
+         </if>
+         ORDER BY fnd01_fund_cd, itm01_item_nm
+   </select>
+   
+
+   <select id="selectByItemCode" parameterType="QueryAttr" resultType="Bok01Book">
+        SELECT bok01_book_id   as bok01BookId   /** 원장id */ 
+             , bok01_hold_date as bok01HoldDate /** 보유일자 */ 
+             , bok01_fund_cd   as bok01FundCd   /** 펀드코드 */ 
+             , bok01_item_cd   as bok01ItemCd   /** 종목코드 */ 
+             , bok01_hold_qty  as bok01HoldQty  /** 보유수량 */ 
+             , bok01_pur_amt   as bok01PurAmt   /** 취득금액 */ 
+             , bok01_book_amt  as bok01BookAmt  /** 장부금액 */ 
+             , bok01_eval_amt  as bok01EvalAmt  /** 평가금액 */ 
+             , bok01_eval_pl   as bok01EvalPl   /** 평가손익 */
+             , bok01_eval_yn   as bok01EvalYn   /** 평가여부 */
+          FROM bok01_book
+         WHERE bok01_hold_date  = #{holdDate}
+           AND bok01_fund_cd    = #{fundCode} 
+           AND bok01_item_cd    = #{itemCode}
+   </select>
+
+   <select id="selectOneLastDate" resultType="String">
+        SELECT max(bok01_hold_date) as bok01HoldDate /** 보유일자 */ 
+          FROM bok01_book
+   </select>
+
+
+	<select id="selectByBookId" parameterType="QueryAttr" resultType="Bok01Book">
+		SELECT * 
+		FROM 
+			bok01_book 
+		WHERE bok01_book_id = #{bookId} 
+			AND bok01_hold_date = #{holdDate}
+	</select>
+
+<!-- 서브쿼리를 밖에서도 쓸려면 WITH 를 줘서 쓴다. -->
+	   <update id="upsert" parameterType="Bok01Book">
+        WITH upsert AS ( UPDATE bok01_book
+                            SET bok01_fund_cd   = #{bok01FundCd}
+                              , bok01_item_cd   = #{bok01ItemCd}
+                              , bok01_hold_qty  = #{bok01HoldQty}
+                              , bok01_pur_amt   = #{bok01PurAmt}
+                              , bok01_book_amt  = #{bok01BookAmt}
+                              , bok01_eval_amt  = #{bok01EvalAmt}
+                              , bok01_eval_pl   = #{bok01EvalPl}
+                              , bok01_eval_yn   = #{bok01EvalYn}
+                          WHERE bok01_book_id   = #{bok01BookId}
+                            AND bok01_hold_date = #{bok01HoldDate}
+                         RETURNING *
+        ) INSERT
+            INTO bok01_book
+          SELECT #{bok01BookId}
+               , #{bok01HoldDate}
+               , #{bok01FundCd}
+               , #{bok01ItemCd}
+               , #{bok01HoldQty}
+               , #{bok01PurAmt}
+               , #{bok01BookAmt}
+               , #{bok01EvalAmt}
+               , #{bok01EvalPl}
+               , #{bok01EvalYn}
+           WHERE NOT EXISTS ( SELECT * from upsert )
+   </update>
+
+
+   <select id="selectOneByBookId" parameterType="QueryAttr" resultType="Bok01Book">
+        SELECT bok01_book_id   as bok01BookId   /** 원장id */ 
+             , bok01_hold_date as bok01HoldDate /** 보유일자 */ 
+             , bok01_fund_cd   as bok01FundCd   /** 펀드코드 */ 
+             , bok01_item_cd   as bok01ItemCd   /** 종목코드 */ 
+             , bok01_hold_qty  as bok01HoldQty  /** 보유수량 */ 
+             , bok01_pur_amt   as bok01PurAmt   /** 취득금액 */ 
+             , bok01_book_amt  as bok01BookAmt  /** 장부금액 */ 
+             , bok01_eval_amt  as bok01EvalAmt  /** 평가금액 */ 
+             , bok01_eval_pl   as bok01EvalPl   /** 평가손익 */
+             , bok01_eval_yn   as bok01EvalYn   /** 평가여부 */
+          FROM bok01_book
+         WHERE bok01_book_id    = #{bookId}
+           AND bok01_hold_date  = #{holdDate}
+   </select>
+
+    <select id="newBookId" resultType="String">
+        SELECT f_seq() as newBookId
+    </select>
+    
+    
+    
+    <select id="getBookId" parameterType="QueryAttr" resultType="String">
+        SELECT bok01_book_id 
+        FROM 
+        	bok01_book 
+        WHERE 1=1 
+        	AND bok01_hold_date = #{holdDate}  
+        	AND bok01_fund_cd = #{fundCode} 
+        	AND bok01_item_cd = #{itemCode}	
+    </select>
+    
+    <!-- 원장의 마지막 보유일자 가져오기. 모든 펀드를 죄다 이월시켜야 한다. -->
+   <select id="getLastHoldDate" resultType="String">
+   		SELECT MAX(bok01_hold_date) as bok01HoldDate  
+   		FROM bok01_book 
+   </select>
+
+<!--    <select id="createBook" parameterType="Condition" resultType="String"> -->
+<!--         SELECT f_create_book(#{contId}, #{procType}) -->
+<!--    </select> -->
+
+
+   <insert id="insert" parameterType="Bok01Book">
+      INSERT INTO bok01_book
+      	( bok01_book_id, bok01_hold_date, bok01_fund_cd, bok01_item_cd, bok01_hold_qty, bok01_pur_amt, bok01_book_amt, bok01_eval_amt, bok01_eval_pl, bok01_eval_yn)
+      VALUES 
+      	( #{bok01BookId},#{bok01HoldDate},#{bok01FundCd},#{bok01ItemCd},#{bok01HoldQty},#{bok01PurAmt},#{bok01BookAmt},#{bok01EvalAmt},#{bok01EvalPl},#{bok01EvalYn})
+   </insert> 
+   
+   
+<!-- 전날 원장을 가져와서 오늘 날짜로다가 생성을 해라 라는 거임. 참고로 >로 비교하면 에러나서 CDATA 써즌다. -->
+   <insert id="insertByDayBefore" parameterType="QueryAttr">
+        INSERT
+          INTO bok01_book
+        SELECT bok01_book_id
+             , #{holdDate}
+             , bok01_fund_cd
+             , bok01_item_cd
+             , bok01_hold_qty
+             , bok01_pur_amt
+             , bok01_book_amt
+             , bok01_eval_amt
+             , bok01_eval_pl
+             , 'false'
+          FROM bok01_book
+         WHERE 1=1
+           <if test="bookId != null">
+             AND bok01_book_id = #{bookId}
+           </if>
+           AND bok01_hold_date = f_get_date(#{holdDate},-1)
+           AND bok01_hold_qty <![CDATA[>]]> 0
+   </insert>
+   
+   <update id="update" parameterType="Bok01Book">
+      UPDATE  
+      	bok01_book 
+      SET
+		bok01_book_id   = #{bok01BookId},   /** 원장id*/ 
+		bok01_hold_date = #{bok01HoldDate}, /** 보유일자*/ 
+		bok01_fund_cd   = #{bok01FundCd},   /** 펀드코드*/ 
+		bok01_item_cd   = #{bok01ItemCd},   /** 종목코드*/ 
+		bok01_hold_qty  = #{bok01HoldQty},  /** 보유수량*/ 
+		bok01_pur_amt   = #{bok01PurAmt},   /** 취득금액*/ 
+		bok01_book_amt  = #{bok01BookAmt},  /** 장부금액*/ 
+		bok01_eval_amt  = #{bok01EvalAmt},  /** 평가금액*/ 
+		bok01_eval_pl   = #{bok01EvalPl},   /** 평가손익*/
+        bok01_eval_yn   = #{bok01EvalYn}    /** 평가여부*/
+      WHERE 1=1
+	     AND bok01_book_id = #{bok01BookId}
+   </update>
+
+<!--    <update id="upsert" parameterType="Bok01Book"> -->
+<!--         WITH upsert AS ( UPDATE bok01_book -->
+<!--                             SET bok01_fund_cd   = #{bok01FundCd} -->
+<!--                               , bok01_item_cd   = #{bok01ItemCd} -->
+<!--                               , bok01_hold_qty  = #{bok01HoldQty} -->
+<!--                               , bok01_pur_amt   = #{bok01PurAmt} -->
+<!--                               , bok01_book_amt  = #{bok01BookAmt} -->
+<!--                               , bok01_eval_amt  = #{bok01EvalAmt} -->
+<!--                               , bok01_eval_pl   = #{bok01EvalPl} -->
+<!--                               , bok01_eval_yn   = #{bok01EvalYn} -->
+<!--                           WHERE bok01_book_id   = #{bok01BookId} -->
+<!--                             AND bok01_hold_date = #{bok01HoldDate} -->
+<!--                          RETURNING * -->
+<!--         ) INSERT -->
+<!--             INTO bok01_book -->
+<!--           SELECT #{bok01BookId} -->
+<!--                , #{bok01HoldDate} -->
+<!--                , #{bok01FundCd} -->
+<!--                , #{bok01ItemCd} -->
+<!--                , #{bok01HoldQty} -->
+<!--                , #{bok01PurAmt} -->
+<!--                , #{bok01BookAmt} -->
+<!--                , #{bok01EvalAmt} -->
+<!--                , #{bok01EvalPl} -->
+<!--                , #{bok01EvalYn} -->
+<!--            WHERE NOT EXISTS ( SELECT * from upsert ) -->
+<!--    </update> -->
+
+	<delete id="deleteByBookId" parameterType="QueryAttr">
+		DELETE 
+		FROM bok01_book 
+		WHERE bok01_book_id = #{bookId} 
+		AND bok01_hold_date = #{holdDate}
+	</delete>
+
+
+
+   <delete id="delete" parameterType="Bok01Book">
+      DELETE FROM
+      	bok01_book
+      WHERE 1=1
+      	 AND bok01_book_id = #{bok01BookId}
+   </delete>    
+
+   <delete id="deleteByHoldDate" parameterType="Bok01Book">
+      DELETE
+        FROM bok01_book
+       WHERE bok01_book_id   = #{bookId}
+         AND bok01_hold_date = #{holdDate}
+   </delete>
+
+</mapper>

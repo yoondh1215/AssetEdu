@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+      "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.kfs.assetedu.repository.Jnl12TrRepository">
+   <sql id="whereConditon">
+		<!--    검색조건 -->
+   		<if test="jnl12TrCd != null">
+	       	AND jnl12_tr_cd  = #{Jnl13TrMapCd}
+		</if>
+   		<if test="searchText != null and searchText != ''">
+	       	AND concat(jnl12_tr_cd,' ',jnl12_tr_nm) like concat('%',#{searchText},'%')
+		</if>
+   </sql>	
+	<select id="selectCount" parameterType="QueryAttr" resultType="Integer">
+   		SELECT 
+   			count(*) as count
+   		FROM
+   			jnl12_tr
+   		WHERE 1=1
+   			<include refid="whereConditon"/>	
+   </select> 
+   
+   <select id="selectList" parameterType="QueryAttr" resultType="Jnl12Tr">
+	   SELECT 
+		  jnl12_tr_cd         AS jnl12TrCd        /* 거래코드 */                   
+		, jnl12_tr_nm         AS jnl12TrNm        /* 거래명 */                    
+		, jnl12_in_out_type   AS jnl12InOutType   /* 원장입출고구분(BookInOutType) */ 
+		, (
+			SELECT 
+				com02_code_nm   /** 코드명*/       
+			FROM 
+				com02_code
+			WHERE 1=1
+				AND com02_com_cd  = 'BookInOutType'
+				AND com02_dtl_cd = A.jnl12_in_out_type
+				AND COALESCE(com02_use_yn,'false') = 'true'		
+		) as jnl12InOutTypeNm
+		, jnl12_use_page_type AS jnl12UsePageType /* 사용화면구분 */                 
+		, jnl12_use_yn        AS jnl12UseYn       /* 사용여부 */
+	   FROM 
+	   		jnl12_tr A
+	   WHERE 1=1
+	   	<include refid="whereConditon"/>
+	   ORDER BY jnl12_tr_cd
+		<if test="pageAttr != null and pageAttr.offset != null">
+	      	OFFSET #{pageAttr.offset}
+		</if>   
+		 <if test="pageAttr != null and pageAttr.limit != null">
+		 	LIMIT #{pageAttr.limit}
+		 </if>
+   </select>
+   
+   <select id="selectOne" parameterType="Jnl12Tr" resultType="Jnl12Tr">
+	   SELECT 
+		  jnl12_tr_cd         AS jnl12TrCd        /* 거래코드 */                   
+		, jnl12_tr_nm         AS jnl12TrNm        /* 거래명 */                    
+		, jnl12_in_out_type   AS jnl12InOutType   /* 원장입출고구분(BookInOutType) */ 
+		, jnl12_use_page_type AS jnl12UsePageType /* 사용화면구분 */                 
+		, jnl12_use_yn        AS jnl12UseYn       /* 사용여부 */
+	   FROM 
+	   		jnl12_tr
+	   WHERE 1=1
+		<if test="jnl12TrCd != null">
+	       	AND jnl12_tr_cd = #{jnl12TrCd}
+		</if>
+   </select>
+   
+   
+   <select id="selectByTrCd" parameterType="String" resultType="Jnl12Tr">
+	   SELECT * 
+	   FROM jnl12_tr 
+	   WHERE jnl12_tr_cd = #{trCd}
+   </select>
+   
+
+   <select id="selectOneByTrCd" parameterType="String" resultType="Jnl12Tr">
+       SELECT jnl12_tr_cd         AS jnl12TrCd        /* 거래코드 */                   
+            , jnl12_tr_nm         AS jnl12TrNm        /* 거래명 */                    
+            , jnl12_in_out_type   AS jnl12InOutType   /* 원장입출고구분(BookInOutType) */ 
+            , jnl12_use_page_type AS jnl12UsePageType /* 사용화면구분 */                 
+            , jnl12_use_yn        AS jnl12UseYn       /* 사용여부 */
+         FROM jnl12_tr
+        WHERE jnl12_tr_cd  = #{trCode}
+          AND jnl12_use_yn = 'true'
+   </select>
+   
+   <insert id="insert" parameterType="Jnl12Tr">
+		INSERT INTO edu.jnl12_tr(
+			jnl12_tr_cd,jnl12_tr_nm,jnl12_in_out_type,jnl12_use_page_type,jnl12_use_yn
+		) VALUES( 
+			#{jnl12TrCd},#{jnl12TrNm},#{jnl12InOutType},#{jnl12UsePageType},#{jnl12UseYn}
+		)
+   </insert> 
+   
+   <update id="update" parameterType="Jnl12Tr">
+      UPDATE  
+      	jnl12_tr 
+      SET
+		  jnl12_tr_cd         = #{jnl12TrCd}        /* 거래코드 */                   
+		, jnl12_tr_nm         = #{jnl12TrNm}        /* 거래명 */                    
+		, jnl12_in_out_type   = #{jnl12InOutType}   /* 원장입출고구분(BookInOutType) */ 
+		, jnl12_use_page_type = #{jnl12UsePageType} /* 사용화면구분 */                 
+		, jnl12_use_yn        = #{jnl12UseYn}       /* 사용여부 */
+	   WHERE 1=1
+	       	AND jnl12_tr_cd = #{jnl12TrCd}
+   </update>
+       
+   <delete id="delete" parameterType="Jnl12Tr">
+      DELETE FROM
+      	jnl12_tr
+      WHERE 1=1
+      	 AND jnl12_tr_cd = #{jnl12TrCd}
+   </delete>    
+
+</mapper>

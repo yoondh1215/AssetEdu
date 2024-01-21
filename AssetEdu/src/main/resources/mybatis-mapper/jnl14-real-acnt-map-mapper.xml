@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+      "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.kfs.assetedu.repository.Jnl14RealAcntMapRepository">
+   <sql id="whereConditon">
+		<!--    검색조건 -->
+   		<if test="Jnl14RealAcntMapCd != null">
+	       	AND jnl14_repr_acnt_cd  = #{jnl14ReprAcntCd}
+		</if>
+   		<if test="searchText != null and searchText != ''">
+	       	AND concat(jnl14_repr_acnt_cd, ' ',jnl11_repr_acnt_nm,' ',jnl14_real_acnt_cd,' ', jnl10_acnt_nm ) like concat('%',#{searchText},'%')
+		</if>
+   </sql>	
+	<select id="selectCount" parameterType="QueryAttr" resultType="Integer">
+   		SELECT 
+   			count(*) as count
+   		FROM
+   			jnl14_real_acnt_map
+   		WHERE 1=1
+   			<include refid="whereConditon"/>	
+   </select> 
+   
+   
+   <select id="selectByReprAcntCd" parameterType="QueryAttr" resultType="Jnl14RealAcntMap">
+   	SELECT 
+   		jnl14_real_acnt_cd  
+   	FROM jnl14_real_acnt_map 
+   	WHERE 
+   		jnl14_real_acnt_cd = #{reprAcntCd} 
+   	AND jnl14_list_type = #{listType} 
+   	AND jnl14_market_type = #{marketType}
+   </select>
+   
+   
+   
+   <select id="selectList" parameterType="QueryAttr" resultType="Jnl14RealAcntMap">
+       SELECT jnl14_repr_acnt_cd    AS jnl14ReprAcntCd
+            , jnl11_repr_acnt_nm    AS jnl14ReprAcntNm
+            , jnl14_list_type       AS jnl14ListType
+            , jnl14_list_type_nm    AS jnl14ListTypeNm
+            , jnl14_market_type     AS jnl14MarketType
+            , jnl14_market_type_nm  AS jnl14MarketTypeNm 
+            , jnl14_real_acnt_cd    AS jnl14RealAcntCd
+            , jnl10_acnt_nm         AS jnl14RealAcntNm   
+         FROM (
+			   SELECT 
+		   			  A.jnl14_repr_acnt_cd
+		   			, ( 
+		   				SELECT jnl11_repr_acnt_nm FROM edu.jnl11_repr_acnt  WHERE  jnl11_repr_acnt_cd =  A.jnl14_repr_acnt_cd
+		   		  	  ) as jnl11_repr_acnt_nm
+		 			, A.jnl14_list_type
+		 			, (
+						SELECT 
+							com02_code_nm   /** 코드명*/       
+						FROM 
+							com02_code
+						WHERE 1=1
+							AND com02_com_cd  = 'ListType'
+							AND com02_dtl_cd = A.jnl14_list_type
+							AND COALESCE(com02_use_yn,'false') = 'true' 			
+		 			  ) AS jnl14_list_type_nm
+					, A.jnl14_market_type 
+		 			, (
+						SELECT 
+							com02_code_nm   /** 코드명*/       
+						FROM 
+							com02_code
+						WHERE 1=1
+							AND com02_com_cd  = 'MarketType'
+							AND com02_dtl_cd = A.jnl14_market_type
+							AND COALESCE(com02_use_yn,'false') = 'true' 			
+		 			) AS    jnl14_market_type_nm
+					, A.jnl14_real_acnt_cd
+		  		,( 
+		  				SELECT jnl10_acnt_nm FROM edu.jnl10_acnt  WHERE  jnl10_acnt_cd =  A.jnl14_real_acnt_cd
+		  		) AS jnl10_acnt_nm		
+			   FROM 
+			   		jnl14_real_acnt_map A
+              ) t
+       WHERE 1=1
+        <include refid="whereConditon"/>
+	   ORDER BY jnl14_repr_acnt_cd, jnl14_list_type, jnl14_market_type
+		<if test="pageAttr != null and pageAttr.offset != null">
+	      	OFFSET #{pageAttr.offset}
+		</if>   
+		 <if test="pageAttr != null and pageAttr.limit != null">
+		 	LIMIT #{pageAttr.limit}
+		 </if>
+   </select>
+   <select id="selectOne" parameterType="Jnl14RealAcntMap" resultType="Jnl14RealAcntMap">
+	   SELECT 
+			jnl14_repr_acnt_cd AS jnl14ReprAcntCd 
+	  		,( 
+	  				SELECT jnl11_repr_acnt_nm FROM edu.jnl11_repr_acnt  WHERE  jnl11_repr_acnt_cd =  A.jnl14_repr_acnt_cd
+	  		) AS jnl14ReprAcntNm		  
+			, jnl14_list_type    AS jnl14ListType 
+			, (
+				SELECT 
+					com02_code_nm   /** 코드명*/       
+				FROM 
+					com02_code
+				WHERE 1=1
+					AND com02_com_cd  = 'ListType'
+					AND com02_dtl_cd = A.jnl14_list_type
+					AND COALESCE(com02_use_yn,'false') = 'true' 			
+			) AS    jnl14ListTypeNm		
+			, jnl14_market_type  AS jnl14MarketType 
+			, (
+				SELECT 
+					com02_code_nm   /** 코드명*/       
+				FROM 
+					com02_code
+				WHERE 1=1
+					AND com02_com_cd  = 'MarketType'
+					AND com02_dtl_cd = A.jnl14_market_type
+					AND COALESCE(com02_use_yn,'false') = 'true' 			
+			) AS    jnl14MarketTypeNm
+			, jnl14_real_acnt_cd AS jnl14RealAcntCd
+	  		,( 
+	  				SELECT jnl10_acnt_nm FROM edu.jnl10_acnt  WHERE  jnl10_acnt_cd =  A.jnl14_real_acnt_cd
+	  		) AS jnl14RealAcntNm	
+	   FROM 
+	   		jnl14_real_acnt_map A
+	   WHERE 1=1
+	       	AND jnl14_repr_acnt_cd = #{jnl14ReprAcntCd}
+	       	AND jnl14_list_type = #{jnl14ListType}
+	       	AND jnl14_market_type = #{jnl14MarketType}	   
+   </select>
+
+   <select id="selectRealAcntCode" parameterType="QueryAttr" resultType="String">
+        SELECT jnl14_real_acnt_cd
+          FROM jnl14_real_acnt_map
+         WHERE jnl14_repr_acnt_cd   = #{reprAcntCode}
+           AND jnl14_list_type      = #{listType}
+           AND jnl14_market_type    = #{marketType}
+   </select>
+
+   <insert id="insert" parameterType="Jnl14RealAcntMap">
+		INSERT INTO edu.jnl14_real_acnt_map(
+			jnl14_repr_acnt_cd,jnl14_list_type,jnl14_market_type,jnl14_real_acnt_cd
+		) VALUES( 
+			#{jnl14ReprAcntCd},#{jnl14ListType},#{jnl14MarketType},#{jnl14RealAcntCd}
+		)
+   </insert> 
+   
+   <update id="update" parameterType="Jnl14RealAcntMap">
+      UPDATE  
+      	jnl14_real_acnt_map 
+      SET
+		  jnl14_repr_acnt_cd = #{jnl14ReprAcntCd} 
+		, jnl14_list_type    = #{jnl14ListType}   
+		, jnl14_market_type  = #{jnl14MarketType} 
+		, jnl14_real_acnt_cd = #{jnl14RealAcntCd}
+	   WHERE 1=1
+	       	AND jnl14_repr_acnt_cd = #{jnl14ReprAcntCdOld}
+	       	AND jnl14_list_type = #{jnl14ListTypeOld}
+	       	AND jnl14_market_type = #{jnl14MarketTypeOld}
+   </update>
+       
+   <delete id="delete" parameterType="Jnl14RealAcntMap">
+      DELETE FROM
+      	jnl14_real_acnt_map
+      WHERE 1=1
+	       	AND jnl14_repr_acnt_cd = #{jnl14ReprAcntCd}
+	       	AND jnl14_list_type = #{jnl14ListType}
+	       	AND jnl14_market_type = #{jnl14MarketType}	
+   </delete>    
+
+</mapper>

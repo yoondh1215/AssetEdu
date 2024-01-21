@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+      "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.kfs.assetedu.repository.Itm02EvalPriceRepository">
+
+   <select id="selectList" parameterType="QueryAttr" resultType="Itm02EvalPrice">
+        SELECT bok01_hold_date                  as itm02ApplyDate 
+             , bok01_item_cd                    as itm02ItemCd
+             , itm01_item_nm                    as itm02ItemNm
+             , COALESCE(itm02_apply_price,0)    as itm02ApplyPrice
+	      FROM bok01_book
+	           INNER JOIN itm01_item ON itm01_item_cd = bok01_item_cd
+	           LEFT OUTER JOIN itm02_eval_price ON ( itm02_item_cd    = bok01_item_cd   AND
+	                                                 itm02_apply_date = bok01_hold_date )
+         WHERE bok01_hold_date = #{stdDate}
+           AND bok01_hold_qty <![CDATA[>]]> 0
+        <if test="searchText != null">
+            AND upper(concat(bok01_item_cd,itm01_item_nm)) like concat('%',upper(#{searchText}),'%')
+        </if>
+         GROUP BY bok01_hold_date, bok01_item_cd, itm01_item_nm, itm02_apply_price
+   </select>
+   
+   
+   
+
+   <update id="upsert" parameterType="Itm02EvalPrice">
+        WITH upsert AS ( UPDATE itm02_eval_price
+		                    SET itm02_apply_price = #{itm02ApplyPrice}
+		                  WHERE itm02_item_cd    = #{itm02ItemCd}
+		                    AND itm02_apply_date = #{itm02ApplyDate}
+		                 RETURNING *
+		) INSERT
+		    INTO itm02_eval_price
+		  SELECT #{itm02ItemCd}
+		       , #{itm02ApplyDate}
+		       , #{itm02ApplyPrice}
+		   WHERE NOT EXISTS ( SELECT * from upsert )
+   </update>
+
+</mapper>

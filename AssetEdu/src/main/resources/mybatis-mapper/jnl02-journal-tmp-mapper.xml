@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+      "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.kfs.assetedu.repository.Jnl02JournalTmpRepository">
+
+
+	<select id="selectByContId" parameterType="String" resultType="Jnl02JournalTmp">
+		SELECT * 
+		FROM jnl02_journal_tmp 
+		WHERE jnl02_cont_id = #{contId} 
+		ORDER BY jnl02_drcr_type DESC, jnl02_seq 
+	</select>
+
+	<delete id="deleteByContId" parameterType="String">
+		DELETE 
+			FROM jnl02_journal_tmp 
+		WHERE jnl02_cont_id = #{contId}
+	</delete>
+
+	
+
+
+<!--   <select id="selectByContId" parameterType="String" resultType="Jnl02JournalTmp">-->
+<!--	   SELECT jnl02_cont_id        as jnl02ContId       /** 체결ID */-->
+<!--            , jnl02_seq            as jnl02Seq          /** 순번 */-->
+<!--            , jnl02_drcr_type      as jnl02DrcrType     /** 차대구분 */-->
+<!--            , jnl02_repr_acnt_cd   as jnl02ReprAcntCd   /** 대표계정코드 */-->
+<!--            , jnl02_amt            as jnl02Amt          /** 금액 */-->
+<!--	     FROM jnl02_journal_tmp-->
+<!--	    WHERE jnl02_cont_id = #{contId}-->
+<!--	    ORDER BY jnl02_drcr_type desc, jnl02_seq-->
+<!--   </select>-->
+   
+
+   
+   <select id="selectDiffAmt" parameterType="String" resultType="Long">
+        SELECT SUM(CASE WHEN jnl02_drcr_type = 'D' THEN jnl02_amt ELSE 0 END)
+             - SUM(CASE WHEN jnl02_drcr_type = 'C' THEN jnl02_amt ELSE 0 END)
+          FROM jnl02_journal_tmp
+         WHERE jnl02_cont_id = #{contId}
+   </select>
+
+   <insert id="insert" parameterType="Jnl02JournalTmp">
+      INSERT
+        INTO jnl02_journal_tmp
+      SELECT #{jnl02ContId}
+           , #{jnl02Seq}
+           , #{jnl02DrcrType}
+           , #{jnl02ReprAcntCd}
+           , #{jnl02Amt}
+   </insert> 
+   
+   <update id="update" parameterType="Jnl02JournalTmp">
+      UPDATE jnl02_journal_tmp 
+         SET jnl02_cont_id      = #{jnl02ContId}
+           , jnl02_seq          = #{jnl02Seq}
+           , jnl02_drcr_type    = #{jnl02DrcrType}
+           , jnl02_repr_acnt_cd = #{jnl02ReprAcntCd}
+           , jnl02_amt          = #{jnl02Amt}
+       WHERE jnl02_cont_id = #{jnl02ContId}
+	     AND jnl02_seq     = #{jnl02Seq}
+   </update>
+       
+   <delete id="delete" parameterType="Jnl02JournalTmp">
+      DELETE
+        FROM jnl02_journal_tmp
+       WHERE jnl02_cont_id = #{jnl02ContId}
+         AND jnl02_seq     = #{jnl02Seq}
+   </delete>    
+
+<!--   <delete id="deleteByContId" parameterType="String">-->
+<!--      DELETE-->
+<!--        FROM jnl02_journal_tmp-->
+<!--       WHERE jnl02_cont_id = #{ContId}-->
+<!--   </delete>    -->
+
+
+</mapper>

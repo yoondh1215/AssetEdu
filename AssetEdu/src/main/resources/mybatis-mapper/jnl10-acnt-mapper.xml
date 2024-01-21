@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+      "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.kfs.assetedu.repository.Jnl10AcntRepository">
+
+<sql id="queryAttr">
+	<if test="searchText != null and searchText != ''">
+		AND concat(jnl10_acnt_nm,' ',jnl10_acnt_cd) like concat('%',#{searchText},'%')
+	</if>
+	<if test="jnl10AcntCd != null">
+	      AND jnl10_acnt_cd  = #{jnl10AcntCd}
+	</if>
+	<if test="parentCode != null and parentCode != ''">
+		<choose>
+			<!--jnl10_slip_yn는 전표생성 여부고 최하위 계정과목 만 전표를 만들기 때문에 true 임. 자산은 false, 유동자산은 true 이런 식임. -->
+			<!-- 만약에 전표생성여부가 null이라 없는데 parentCode가 parent 라면 false=false 니 걍 전부 다 뽑아라 이거고 -->
+			<!-- 만약에 전표생성여부가 true면 최하위 계정과목이므로 parentCode 가 child 일때만 나옴.-->	
+			<when test="parentCode == 'parent'">
+				AND COALESCE (jnl10_slip_yn, 'false') = 'false' 
+			</when>
+			<when test="parentCode == 'child'">
+				AND COALESCE (jnl10_slip_yn, 'false') = 'true' 
+			</when>
+			<otherwise>
+				AND jnl10_parent_cd = #{parentCode}
+			</otherwise>
+		</choose>
+	</if>
+</sql>
+
+
+<select id="selectList"  parameterType="QueryAttr" resultType="Jnl10Acnt" >
+ SELECT 
+			jnl10_acnt_cd      as jnl10AcntCd,     /**계정코드*/               
+			jnl10_acnt_nm      as jnl10AcntNm,     /**계정명*/                
+			jnl10_parent_cd    as jnl10ParentCd,   /**상위계정코드*/             
+			jnl10_acnt_attr_cd as jnl10AcntAttrCd, /**계정속성(acntattrcode)*/ 
+			(
+				SELECT 
+					com02_code_nm   /** 코드명*/       
+				FROM 
+					com02_code
+				WHERE 1=1
+					AND com02_com_cd  = 'AcntAttrCode'
+					AND com02_dtl_cd = A.jnl10_acnt_attr_cd
+					AND COALESCE(com02_use_yn,'false') = 'true'		
+			) as jnl10AcntAttrNm,			
+			jnl10_drcr_type    as jnl10DrcrType,   /**차대구분(drcrtype)*/ 
+			(
+				SELECT 
+					com02_code_nm   /** 코드명*/       
+				FROM 
+					com02_code
+				WHERE 1=1
+					AND com02_com_cd  = 'DrcrType'
+					AND com02_dtl_cd = A.jnl10_drcr_type
+					AND COALESCE(com02_use_yn,'false') = 'true'		
+			) as jnl10DrcrTypeNm,			    
+			jnl10_slip_yn      as jnl10SlipYn,     /**전표생성여부*/             
+			jnl10_use_yn       as jnl10UseYn       /**사용여부*/
+	   FROM 
+	   		jnl10_acnt A 
+	   	WHERE 1=1 
+	   	<include refid="queryAttr"/>
+	   	 ORDER BY jnl10_acnt_cd
+		<if test="pageAttr != null and pageAttr.offset != null">
+	      	OFFSET #{pageAttr.offset}
+		</if>   
+		 <if test="pageAttr != null and pageAttr.limit != null">
+		 	LIMIT #{pageAttr.limit}
+		 </if>
+</select>
+
+<select id="selectOne" parameterType="string" resultType="Jnl10Acnt">
+	SELECT 
+			jnl10_acnt_cd      as jnl10AcntCd,     /**계정코드*/               
+			jnl10_acnt_nm      as jnl10AcntNm,     /**계정명*/                
+			jnl10_parent_cd    as jnl10ParentCd,   /**상위계정코드*/             
+			jnl10_acnt_attr_cd as jnl10AcntAttrCd, /**계정속성(acntattrcode)*/ 
+			(
+				SELECT 
+					com02_code_nm   /** 코드명*/       
+				FROM 
+					com02_code
+				WHERE 1=1
+					AND com02_com_cd  = 'AcntAttrCode'
+					AND com02_dtl_cd = A.jnl10_acnt_attr_cd
+					AND COALESCE(com02_use_yn,'false') = 'true'		
+			) as jnl10AcntAttrNm,			
+			jnl10_drcr_type    as jnl10DrcrType,   /**차대구분(drcrtype)*/ 
+			(
+				SELECT 
+					com02_code_nm   /** 코드명*/       
+				FROM 
+					com02_code
+				WHERE 1=1
+					AND com02_com_cd  = 'DrcrType'
+					AND com02_dtl_cd = A.jnl10_drcr_type
+					AND COALESCE(com02_use_yn,'false') = 'true'		
+			) as jnl10DrcrTypeNm,			    
+			jnl10_slip_yn      as jnl10SlipYn,     /**전표생성여부*/             
+			jnl10_use_yn       as jnl10UseYn       /**사용여부*/
+	   FROM 
+	   		jnl10_acnt A 
+	   	WHERE 1=1 
+	   	AND jnl10_acnt_cd = #{jnl10AcntCd}
+</select>	
+	
+
+<select id="selectCount" parameterType="QueryAttr" resultType="Integer">
+	SELECT 
+		count(*) as count 
+	FROM 
+		jnl10_acnt 
+	WHERE 1=1 
+		<include refid="queryAttr"/>
+</select>
+
+
+<insert id="insert" parameterType="Jnl10Acnt">
+	INSERT INTO 
+		jnl10_acnt (
+			jnl10_acnt_cd, 
+			jnl10_acnt_nm, 
+			jnl10_parent_cd, 
+			jnl10_acnt_attr_cd, 
+			jnl10_drcr_type, 
+			jnl10_slip_yn, 
+			jnl10_use_yn)
+	VALUES (
+	#{jnl10AcntCd}, 
+	#{jnl10AcntNm}, 
+	#{jnl10ParentCd}, 
+	#{jnl10AcntAttrCd}, 
+	#{jnl10DrcrType}, 
+	#{jnl10SlipYn}, 
+	#{jnl10UseYn}
+	)
+</insert>
+
+<update id="update" parameterType="Jnl10Acnt">
+	UPDATE
+		jnl10_acnt 
+	SET 
+		jnl10_acnt_cd      = #{jnl10AcntCd},     /** 계정코드 */               
+		jnl10_acnt_nm      = #{jnl10AcntNm},     /** 계정명 */                
+		jnl10_parent_cd    = #{jnl10ParentCd},   /** 상위계정코드 */             
+		jnl10_acnt_attr_cd = #{jnl10AcntAttrCd}, /** 계정속성(acntattrcode) */ 
+		jnl10_drcr_type    = #{jnl10DrcrType},   /** 차대구분(drcrtype) */     
+		jnl10_slip_yn      = #{jnl10SlipYn},     /** 전표생성여부 */             
+		jnl10_use_yn       = #{jnl10UseYn}       /** 사용여부 */
+	WHERE 1=1 
+		AND jnl10_acnt_cd = #{jnl10AcntCd}
+</update>
+
+<delete id="delete" parameterType="string">
+ DELETE FROM 
+ 	jnl10_acnt 
+ WHERE 1=1 
+ AND 
+ 	jnl10_acnt_cd =  #{jnl10AcntCd}
+</delete>
+
+
+</mapper>

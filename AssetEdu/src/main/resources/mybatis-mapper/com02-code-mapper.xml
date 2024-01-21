@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+      "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.kfs.assetedu.repository.Com02CodeRepository">
+   <sql id="whereCondition">
+		<!--    검색조건 -->
+   		<if test="com02ComCd != null and com02ComCd != ''">
+	       	AND com02_com_cd  = #{com02ComCd}
+		</if>
+		<if test="com02DtlCd != null and com02DtlCd != ''">
+	       	AND com02_dtl_cd = #{com02DtlCd}
+		</if>
+		<if test="com02CodeType != null and com02CodeType !=''">
+	       	AND com02_code_type = #{com02CodeType}
+		</if>
+        <if test="com02UseYn != null and  com02UseYn != ''">
+            AND COALESCE(com02_use_yn,'false') = #{com02UseYn}
+        </if>
+        <if test="com02Note != null and com02Note != ''">
+            AND com02_note = #{com02Note}
+        </if>
+        <if test="searchText != null and  searchText != ''">
+            AND concat(com02_code_nm,com02_com_cd, com02_com_cd) like concat('%',#{searchText},'%')
+        </if>
+   </sql>	
+	<select id="selectCount" parameterType="QueryAttr" resultType="Integer">
+   		SELECT 
+   			count(*) as count
+   		FROM
+   			com02_code
+   		WHERE 1=1
+   			<include refid="whereCondition"/>	
+   </select> 
+   
+   <select id="selectList" parameterType="QueryAttr" resultType="Com02Code">
+	   SELECT 
+			com02_com_cd,    /** 공통코드*/      
+			com02_dtl_cd,    /** 세부코드*/      
+			com02_code_nm,   /** 코드명*/       
+			com02_code_type, /** 코드구분(C/D)*/ 
+			com02_seq,       /** 순번*/        
+			com02_use_yn,    /** 사용여부*/      
+			com02_note       /** 비고*/
+	   FROM 
+	   		com02_code
+	   WHERE 1=1
+	   	<include refid="whereCondition"/>
+	   ORDER BY com02_com_cd, com02_seq, com02_dtl_cd 	
+		<if test="offset != null and offset != null">
+	      	OFFSET #{offset}
+		</if>   
+		 <if test="limit != null and limit != null">
+		 	LIMIT #{limit}
+		 </if>
+   </select>
+   <select id="selectOne" parameterType="Com02Code" resultType="Com02Code">
+	   SELECT 
+			com02_com_cd,    /** 공통코드*/      
+			com02_dtl_cd,    /** 세부코드*/      
+			com02_code_nm,   /** 코드명*/       
+			com02_code_type, /** 코드구분(C/D)*/ 
+			com02_seq,       /** 순번*/        
+			com02_use_yn,    /** 사용여부*/      
+			com02_note       /** 비고*/
+	   FROM 
+	   		com02_code
+	   WHERE 1=1
+	       	AND com02_com_cd  = #{com02ComCd}
+	       	AND com02_dtl_cd = #{com02DtlCd}
+   </select>
+   
+   <select id="selectTrList" parameterType="String" resultType="Com02Code">
+        SELECT jnl12_tr_cd         AS com02_dtl_cd        /* 거래코드 */                   
+             , jnl12_tr_nm         AS com02_code_nm        /* 거래명 */                    
+          FROM jnl12_tr
+         WHERE jnl12_use_page_type = #{usePageType}
+           AND jnl12_use_yn        = 'true'
+   </select>
+   
+   <insert id="insert" parameterType="Com02Code">
+    INSERT INTO public.com02_code(
+		com02_com_cd, com02_dtl_cd, com02_code_nm, com02_code_type, com02_seq, com02_use_yn, com02_note
+	)
+	VALUES (
+		#{com02ComCd}, #{com02DtlCd}, #{com02CodeNm}, #{com02CodeType}, #{com02Seq}, #{com02UseYn}, #{com02Note}
+	)
+   </insert> 
+   
+   <update id="update" parameterType="Com02Code">
+      UPDATE  
+      	com02_code 
+      SET
+		COM02_COM_CD    = #{com02ComCd},  	/** 공통코드*/      
+		COM02_DTL_CD    = #{com02DtlCd},  	/** 세부코드*/      
+		COM02_CODE_NM   = #{com02CodeNm},  	/** 코드명*/       
+		COM02_CODE_TYPE = #{com02CodeType}, /** 코드구분(C/D)*/ 
+		COM02_SEQ       = #{com02Seq}, 		/** 순번*/        
+		COM02_USE_YN    = #{com02UseYn},  	/** 사용여부*/      
+		COM02_NOTE      = #{com02Note} 		/** 비고*/
+	   WHERE 1=1
+	       	AND com02_com_cd = #{com02ComCd}
+	       	AND com02_dtl_cd = #{com02DtlCd}
+   </update>
+       
+   <delete id="delete" parameterType="Com02Code">
+      DELETE FROM
+      	com02_code
+	   WHERE 1=1
+	       	AND com02_com_cd  = #{com02ComCd}
+	       	<if test="com02DtlCd != null and com02DtlCd != ''">
+	       	AND com02_dtl_cd = #{com02DtlCd}
+	       	</if>
+   </delete>    
+
+</mapper>

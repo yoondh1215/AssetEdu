@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+      "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.kfs.assetedu.repository.Jnl11ReprAcntRepository">
+ 
+<sql id="whereConditon">
+	<!--    검색조건 -->
+   	<if test="jnl11ReprAcntCd != null">
+      	AND jnl11_repr_acnt_cd  = #{jnl11ReprAcntCd}
+	</if>
+   	<if test="searchText != null and searchText != ''">
+      	AND concat(jnl11_repr_acnt_cd,' ',jnl11_repr_acnt_nm) like concat('%',#{searchText},'%')
+	</if>
+</sql>	
+ 
+ <select id="selectList" parameterType="QueryAttr" resultType="Jnl11ReprAcnt">
+ 	   SELECT 
+		  jnl11_repr_acnt_cd      AS jnl11ReprAcntCd      /* 대표계정코드 */               
+		, jnl11_repr_acnt_nm      AS jnl11ReprAcntNm      /* 대표계정명 */                
+		, jnl11_acnt_attribute_cd AS jnl11AcntAttributeCd /* 계정속성코드(AcntAttrCode) */ 
+		, (
+			SELECT 
+				com02_code_nm   /** 코드명*/       
+			FROM 
+				com02_code
+			WHERE 1=1
+				AND com02_com_cd  = 'AcntAttrCode'
+				AND com02_dtl_cd = A.jnl11_acnt_attribute_cd
+				AND COALESCE(com02_use_yn,'false') = 'true'		
+		) as jnl11AcntAttributeNm				
+		, jnl11_tgt_repr_acnt_cd  AS jnl11TgtReprAcntCd   /* 상대 대표계정코드 */
+		, (
+			SELECT jnl11_repr_acnt_nm FROM edu.jnl11_repr_acnt  WHERE  jnl11_repr_acnt_cd = A.jnl11_tgt_repr_acnt_cd
+		) AS jnl11TgtReprAcntNm				/* 상대 대표계정코드명을 셀프 조인으로 가져오기 */
+	   FROM 
+	   		jnl11_repr_acnt A
+	   WHERE 1=1
+	   	<include refid="whereConditon"/>
+	   ORDER BY jnl11_repr_acnt_cd
+		<if test="pageAttr != null and pageAttr.offset != null">
+	      	OFFSET #{pageAttr.offset}
+		</if>   
+		 <if test="pageAttr != null and pageAttr.limit != null">
+		 	LIMIT #{pageAttr.limit}
+		 </if>
+ </select>
+ 
+ 
+ <select id="selectOne" parameterType="string" resultType="Jnl11ReprAcnt">
+	   SELECT 
+		  jnl11_repr_acnt_cd      AS jnl11ReprAcntCd      /* 대표계정코드 */               
+		, jnl11_repr_acnt_nm      AS jnl11ReprAcntNm      /* 대표계정명 */                
+		, jnl11_acnt_attribute_cd AS jnl11AcntAttributeCd /* 계정속성코드(AcntAttrCode) */ 
+		, (
+			SELECT 
+				com02_code_nm   /** 코드명*/       
+			FROM 
+				com02_code
+			WHERE 1=1
+				AND com02_com_cd  = 'AcntAttrCode'
+				AND com02_dtl_cd = A.jnl11_acnt_attribute_cd
+				AND COALESCE(com02_use_yn,'false') = 'true'		
+		  ) as jnl11AcntAttributeNm						
+		, jnl11_tgt_repr_acnt_cd  AS jnl11TgtReprAcntCd   /* 상대 대표계정코드 */
+		, (
+			SELECT jnl11_repr_acnt_nm FROM edu.jnl11_repr_acnt  WHERE  jnl11_repr_acnt_cd = A.jnl11_tgt_repr_acnt_cd
+		) AS jnl11TgtReprAcntNm			/* 상대 대표계정코드명을 셀프 조인으로 가져오기 */
+	   FROM 
+	   		jnl11_repr_acnt A
+	   WHERE 1=1
+		<if test="jnl11ReprAcntCd != null">
+	       	AND jnl11_repr_acnt_cd = #{jnl11ReprAcntCd}
+		</if>
+ </select>
+ 
+<select id="selectCount" parameterType="QueryAttr" resultType="Integer">
+  	SELECT 
+   		count(*) as count
+   	FROM
+   		jnl11_repr_acnt
+   	WHERE 1=1
+   	<include refid="whereConditon"/>	
+</select> 
+ 
+<insert id="insert" parameterType="Jnl11ReprAcnt">
+	INSERT INTO edu.jnl11_repr_acnt(
+		jnl11_repr_acnt_cd,jnl11_repr_acnt_nm,jnl11_acnt_attribute_cd,jnl11_tgt_repr_acnt_cd
+	) VALUES( 
+		#{jnl11ReprAcntCd},#{jnl11ReprAcntNm},#{jnl11AcntAttributeCd},#{jnl11TgtReprAcntCd}
+	)
+</insert> 
+ 
+ <update id="update" parameterType="Jnl11ReprAcnt">
+      UPDATE  
+      	jnl11_repr_acnt 
+      SET
+		  jnl11_repr_acnt_cd = #{jnl11ReprAcntCd}
+		, jnl11_repr_acnt_nm = #{jnl11ReprAcntNm}
+		, jnl11_acnt_attribute_cd = #{jnl11AcntAttributeCd}
+		, jnl11_tgt_repr_acnt_cd = #{jnl11TgtReprAcntCd}
+	   WHERE 1=1
+		<if test="jnl11ReprAcntCd != null">
+	       	AND jnl11_repr_acnt_cd = #{jnl11ReprAcntCd}
+	    </if>  
+ </update>
+ 
+   <delete id="delete" parameterType="string">
+      DELETE FROM
+      	jnl11_repr_acnt
+      WHERE 1=1
+      	 AND jnl11_repr_acnt_cd = #{jnl11ReprAcntCd}
+   </delete>  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+</mapper>

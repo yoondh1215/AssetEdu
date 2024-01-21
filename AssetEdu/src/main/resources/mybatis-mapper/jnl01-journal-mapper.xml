@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+      "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.kfs.assetedu.repository.Jnl01JournalRepository">
+
+
+ 	<sql id="whereCondition">
+		<!--    검색조건 -->
+   		<if test="jnl01ContId != null">
+	       	AND jnl01_cont_id = #{jnl01ContId}
+		</if>
+		<if test="jnl01Seq != null">
+	       	AND jnl01_seq  = #{jnl01Seq}
+		</if>
+		<if test="frDate != null and frDate !=''">
+	       	AND opr01_cont_date   <![CDATA[ >=  ]]> #{frDate}
+		</if>		
+		<if test="toDate != null and toDate !=''">
+	       	AND opr01_cont_date  <![CDATA[ <=  ]]> #{toDate}
+		</if>		
+		<if test="searchText != null and searchText !=''">
+	       	AND concat(jnl12_tr_nm, fnd01_fund_nm, itm01_item_nm, opr01_cont_id, opr01_book_id ) like concat('%',#{searchText},'%')
+		</if>		
+   </sql>	
+   
+   
+	<select id="selectList" parameterType="QueryAttr" resultType="Jnl01Journal">
+		SELECT 
+		  A.jnl01_cont_id     as jnl01ContId 		/** 체결ID */   
+		, A.jnl01_seq         as jnl01Seq 			/** 순번 */     
+		, A.jnl01_dr_acnt_cd  as jnl01DrAcntCd 		/** 차변계정코드 */ 
+		, A.jnl01_dr_amt      as jnl01DrAmt 		/** 차변금액 */   
+		, A.jnl01_cr_acnt_cd  as jnl01CrAcnt_cd 	/** 대변계정코드 */ 
+		, A.jnl01_cr_amt      as jnl01CrAmt 		/** 대변금액 */
+		/**차변 계정과목*/
+		, B.jnl10_acnt_cd      as drJnl10AcntCd     /**계정코드*/               
+		, B.jnl10_acnt_nm      as drJnl10AcntNm     /**계정명*/                
+		, B.jnl10_parent_cd    as drJnl10ParentCd   /**상위계정코드*/             
+		, B.jnl10_acnt_attr_cd as drJnl10AcntAttrCd /**계정속성(acntattrcode)*/ 
+		, B.jnl10_drcr_type    as drJnl10DrcrType   /**차대구분(drcrtype)*/     
+		, B.jnl10_slip_yn      as drJnl10SlipYn     /**전표생성여부*/             
+		, B.jnl10_use_yn       as drJnl10UseYn       /**사용여부*/		
+		/**대변 계정과목*/
+		, C.jnl10_acnt_cd      as cRJnl10AcntCd     /**계정코드*/               
+		, C.jnl10_acnt_nm      as cRJnl10AcntNm     /**계정명*/                
+		, C.jnl10_parent_cd    as cRJnl10ParentCd   /**상위계정코드*/             
+		, C.jnl10_acnt_attr_cd as cRJnl10AcntAttrCd /**계정속성(acntattrcode)*/ 
+		, C.jnl10_drcr_type    as cRJnl10DrcrType   /**차대구분(drcrtype)*/     
+		, C.jnl10_slip_yn      as cRJnl10SlipYn     /**전표생성여부*/             
+		, C.jnl10_use_yn       as cRJnl10UseYn       /**사용여부*/
+		/** 운영지시*/
+		, D.opr01_cont_id       as opr01ContId     /** 체결ID */               
+		, D.opr01_fund_cd       as opr01FundCd     /** 펀드코드 */               
+		, D.opr01_item_cd       as opr01ItemCd     /** 종목코드 */               
+		, D.opr01_cont_date     as opr01ContDate	/**	체결일자 */
+		, D.opr01_book_id       as opr01BookId      /**보유ID*/
+		, D.opr01_tr_cd         as opr01TrCd       /** 거래코드*/
+		, jnl12_tr_nm           as opr01TrNm        /**거래코드명*/
+
+		/** 펀드정보 */
+		, E.fnd01_fund_nm       as fnd01FundNm          /** 펀드명 */
+
+		/** 계정정보*/
+		, F.itm01_item_nm       as itm01ItemNm	   /**종목명*/
+		
+		FROM jnl01_journal A 
+		     INNER JOIN opr01_cont D ON A.jnl01_cont_id  = D.opr01_cont_id AND D.opr01_status_cd = '1'
+		     LEFT OUTER JOIN jnl10_acnt B ON A.jnl01_dr_acnt_cd  = B.jnl10_acnt_cd 
+		     LEFT OUTER JOIN jnl10_acnt C ON A.jnl01_cr_acnt_cd  = C.jnl10_acnt_cd 
+		     INNER JOIN fnd01_fund E ON D.opr01_fund_cd  = E.fnd01_fund_cd 
+		     INNER JOIN itm01_item F ON D.opr01_item_cd  = F.itm01_item_cd
+		     INNER JOIN jnl12_tr ON (jnl12_tr_cd = opr01_tr_cd) 
+	  	WHERE 1=1
+	   	<include refid="whereCondition"/>
+	   	ORDER BY jnl01_cont_id, jnl01_seq
+		<if test="offset != null and offset != null">
+	      	OFFSET #{offset}
+		</if>   
+		 <if test="limit != null and limit != null">
+		 	LIMIT #{limit}
+		 </if>
+	</select>
+	
+	<select id="selectOne" parameterType="Jnl01Journal" resultType="Jnl01Journal">
+		SELECT 
+		FROM 	jnl01_journal 
+		WHERE 	jnl01_cont_id	 = #{jnl01ContId} 
+		AND 	jnl01_seq		 = #{jnl01Seq}
+	</select>
+
+	<select id="getAmt" parameterType="QueryAttr" resultType="Long">
+		SELECT f_get_journalamt(#{formula}, #{contId})
+	</select>
+
+	<delete id="deleteByContId" parameterType="String">
+		DELETE 
+			FROM jnl01_journal 
+		WHERE jnl01_cont_id = #{contId}
+	</delete>
+
+	<insert id="insert" parameterType="Jnl01Journal">
+		INSERT 
+		INTO jnl01_journal 
+		SELECT #{jnl01ContId}, 
+				#{jnl01SEq},
+				#{jnl01DrAcntCd}, 
+				#{jnl01DrAmt}, 
+				#{jnl01CrAcntCd},
+				#{jnl01CrAmt} 
+	</insert>
+
+	  <update id="update" parameterType="Jnl01Journal">
+      UPDATE  
+      	jnl01_journal 
+      SET
+		jnl01_cont_id    = #{jnl01ContId} ,   /** 체결ID */   
+		jnl01_seq        = #{jnl01Seq} ,      /** 순번 */     
+		jnl01_dr_acnt_cd = #{jnl01DrAcntCd} , /** 차변계정코드 */ 
+		jnl01_dr_amt     = #{jnl01DrAmt} ,    /** 차변금액 */   
+		jnl01_cr_acnt_cd = #{jnl01CrAcntCd} , /** 대변계정코드 */ 
+		jnl01_cr_amt     = #{jnl01CrAmt}      /** 대변금액 */
+      WHERE 1=1
+	     AND jnl01_cont_id = #{jnl01ContId}
+	     AND jnl01_seq     = #{jnl01Seq}
+   </update>
+   
+   <delete id="delete" parameterType="Jnl01Journal">
+      DELETE FROM
+      	jnl01_journal
+      WHERE 1=1
+	     AND jnl01_cont_id = #{jnl01ContId}
+	     AND jnl01_seq     = #{jnl01Seq}
+   </delete>  
+   
+   <select id="selectCount" parameterType="QueryAttr" resultType="Long">
+   		SELECT 
+   			count(*) as count
+   		FROM
+   			jnl01_journal
+   		WHERE 1=1
+   			<include refid="whereCondition"/>	
+   </select> 
+
+</mapper>

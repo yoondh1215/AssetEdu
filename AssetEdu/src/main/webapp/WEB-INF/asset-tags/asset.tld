@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<taglib>
+	<description>Asset-Custom-Tags</description>
+	<tlib-version>1.0</tlib-version>
+	<jsp-version>3.1</jsp-version>
+	<short-name>Asset-Tags</short-name>
+	<tag>
+		<name>displayYmd</name>
+		<tag-class>kr.co.kfs.assetedu.utils.tags.DisplayYmd</tag-class>
+		<body-content>empty</body-content>
+		<attribute>
+			<name>ymd</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>seperator</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+</taglib>

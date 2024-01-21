@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+      "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.kfs.assetedu.repository.Jnl13TrMapRepository">
+	
+	<select id="selectById">
+		SELECT * 
+		FROM jnl13_tr_map 
+		WHERE jnl13_tr_cd = #{trCd} 
+		ORDER BY jnl13_seq 
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+   <sql id="whereConditon">
+		    검색조건 
+   		<if test="jnl13TrCd != null">
+	       	AND jnl13_tr_cd  = #{jnl13TrCd}
+		</if>
+   		<if test="jnl13Seq != null">
+	       	AND jnl13_seq  = #{jnl13Seq}
+		</if>
+   		<if test="searchText != null and searchText != ''">
+	       	AND concat(jnl13_tr_map_nm,' ',jnl13_tr_map_cd) like concat('%',#{searchText},'%')
+		</if>
+   </sql>	
+	<select id="selectCount" parameterType="QueryAttr" resultType="Integer">
+   		SELECT 
+   			count(*) as count
+   		FROM
+   			jnl13_tr_map
+   		WHERE 1=1
+   			<include refid="whereConditon"/>	
+   </select> 
+   
+   <select id="selectList" parameterType="QueryAttr" resultType="Jnl13TrMap">
+	   SELECT 
+		  A.jnl13_tr_cd        AS jnl13TrCd       /* 거래코드 */           
+		, A.jnl13_seq          AS jnl13Seq        /* 순번 */             
+		, A.jnl13_repr_acnt_cd AS jnl13ReprAcntCd /* 대표계정코드 */         
+		, A.jnl13_drcr_type    AS jnl13DrcrType   /* 차대구분(DrcrType) */ 
+		,		(
+			SELECT 
+				com02_code_nm   /** 코드명*/       
+			FROM 
+				com02_code
+			WHERE 1=1
+				AND com02_com_cd  = 'DrcrType'
+				AND com02_dtl_cd = A.jnl13_drcr_type
+				AND COALESCE(com02_use_yn,'false') = 'true'		
+		) as jnl13DrcrTypeNm	
+		, A.jnl13_formula      AS jnl13Formula    /* 계산식 */		
+		, C.jnl11_repr_acnt_nm as jnl11ReprAcntNm /* 대표계정명 */
+	   FROM 
+	   		jnl13_tr_map A
+	   		inner join edu.jnl12_tr B 
+	   			on A.jnl13_tr_cd  = B.jnl12_tr_cd 
+	   		left outer join edu.jnl11_repr_acnt C 
+	   			on A.jnl13_repr_acnt_cd = C.jnl11_repr_acnt_cd 
+	   WHERE 1=1
+	   	<include refid="whereConditon"/>
+	   ORDER BY A.jnl13_tr_cd, A.jnl13_seq	
+		<if test="pageAttr != null and pageAttr.offset != null">
+	      	OFFSET #{pageAttr.offset}
+		</if>
+		 <if test="pageAttr != null and pageAttr.limit != null">
+		 	LIMIT #{pageAttr.limit}
+		 </if>
+   </select>
+   <select id="selectOne" parameterType="Jnl13TrMap" resultType="Jnl13TrMap">
+	   SELECT 
+		  jnl13_tr_cd        AS jnl13TrCd       /* 거래코드 */
+		, (SELECT jnl12_tr_nm  FROM edu.jnl12_tr WHERE jnl12_tr_cd = A.jnl13_tr_cd) AS jnl13TrNm
+		, jnl13_seq          AS jnl13Seq        /* 순번 */             
+		, jnl13_repr_acnt_cd AS jnl13ReprAcntCd /* 대표계정코드 */         
+		, jnl13_drcr_type    AS jnl13DrcrType   /* 차대구분(DrcrType) */ 
+		,(
+			SELECT 
+				com02_code_nm   /** 코드명*/       
+			FROM 
+				com02_code
+			WHERE 1=1
+				AND com02_com_cd  = 'DrcrType'
+				AND com02_dtl_cd = A.jnl13_drcr_type
+				AND COALESCE(com02_use_yn,'false') = 'true'		
+		) as jnl13DrcrTypeNm		
+		, jnl13_formula      AS jnl13Formula    /* 계산식 */	
+		, C.jnl11_repr_acnt_nm as jnl11ReprAcntNm /* 대표계정명 */
+	   FROM 
+	   		jnl13_tr_map A
+	   		left outer join edu.jnl11_repr_acnt C 
+	   			on A.jnl13_repr_acnt_cd = C.jnl11_repr_acnt_cd 	   		
+	   WHERE 1=1
+		<if test="jnl13TrCd != null">
+	       	AND jnl13_tr_cd = #{jnl13TrCd}
+		</if>
+		<if test="jnl13Seq != null">
+	       	AND jnl13_seq = #{jnl13Seq}
+		</if>
+   </select>
+   
+   <select id="selectByTrCode" parameterType="String" resultType="Jnl13TrMap">
+        SELECT jnl13_tr_cd        AS jnl13TrCd       /* 거래코드 */           
+             , jnl13_seq          AS jnl13Seq        /* 순번 */             
+             , jnl13_repr_acnt_cd AS jnl13ReprAcntCd /* 대표계정코드 */         
+             , jnl13_drcr_type    AS jnl13DrcrType   /* 차대구분(DrcrType) */ 
+             , jnl13_formula      AS jnl13Formula    /* 계산식 */   
+          FROM jnl13_tr_map
+         WHERE jnl13_tr_cd = #{trCode}
+         ORDER BY jnl13_seq
+   </select>
+   
+   <select id="getAmt" parameterType="QueryAttr" resultType="Long">
+        select f_get_journalAmt(#{sql}, #{contId})
+   </select>
+   
+   <insert id="insert" parameterType="Jnl13TrMap">
+		INSERT INTO edu.jnl13_tr_map(
+			jnl13_tr_cd,jnl13_seq,jnl13_repr_acnt_cd,jnl13_drcr_type,jnl13_formula
+		) VALUES( 
+			#{jnl13TrCd},#{jnl13Seq},#{jnl13ReprAcntCd},#{jnl13DrcrType},#{jnl13Formula}
+		)
+   </insert> 
+   
+   <update id="update" parameterType="Jnl13TrMap">
+      UPDATE  
+      	jnl13_tr_map 
+      SET
+			  jnl13_tr_cd        = #{jnl13TrCd}       
+			, jnl13_seq          = #{jnl13Seq}        
+			, jnl13_repr_acnt_cd = #{jnl13ReprAcntCd} 
+			, jnl13_drcr_type    = #{jnl13DrcrType}   
+			, jnl13_formula      = #{jnl13Formula}
+	   WHERE 1=1
+	       	AND jnl13_tr_cd = #{jnl13TrCd}
+	       	AND jnl13_seq = #{jnl13Seq}
+   </update>
+       
+   <delete id="delete" parameterType="Jnl13TrMap">
+      DELETE FROM
+      	jnl13_tr_map
+      WHERE 1=1
+      	 AND jnl13_tr_cd = #{jnl13TrCd}
+      	 AND jnl13_seq = #{jnl13Seq}
+   </delete>    
+
+</mapper>

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+      "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.kfs.assetedu.repository.Itm01ItemRepository">
+
+	<sql id="whereCondition">
+		<!--    검색조건 -->
+   		<if test="itm01ItemCd != null">
+	       	AND itm01_item_cd = #{itm01ItemCd}
+		</if>
+        <if test="searchText != null">
+            AND upper(concat(itm01_item_cd,itm01_item_nm,itm01_item_enm,itm01_short_cd)) like concat('%',upper(#{searchText}),'%')
+        </if>
+    </sql>
+
+
+	   <select id="selectList" parameterType="QueryAttr" resultType="Itm01Item">
+	   SELECT 
+		  itm01_item_cd                             as itm01ItemCd       /** 종목코드*/                        
+		, itm01_item_nm                             as itm01ItemNm       /** 종목명*/                         
+		, itm01_item_enm                            as itm01ItemEnm      /** 영문명*/                         
+		, itm01_short_cd                            as itm01ShortCd      /** 단축코드*/                        
+		, itm01_iss_type                            as itm01IssType      /** 발행구분(StkIssType:공모/사모)*/      
+		, itm01_stk_type                            as itm01StkType      /** 증권종류(StkType:보통주/우선주/..)*/    
+		, itm01_list_type                           as itm01ListType     /** 상장구분(ListType:상장/비상장/상장폐지)*/  
+		, itm01_market_type                         as itm01MarketType   /** 시장구분(MarketType:코스피/코스닥/..)*/ 
+		, itm01_par                                 as itm01Par          /** 액면가*/                         
+		, itm01_iss_co_cd                           as itm01IssCoCd      /** 발행기관코드*/
+        , f_com_nm('StkIssType' ,itm01_iss_type   ) as itm01IssTypeNm    /** 발행구분명*/      
+        , f_com_nm('StkType'    ,itm01_stk_type   ) as itm01StkTypeNm    /** 증권종류명*/    
+        , f_com_nm('ListType'   ,itm01_list_type  ) as itm01ListTypeNm   /** 상장구분명*/  
+        , f_com_nm('MarketType' ,itm01_market_type) as itm01MarketTypeNm /** 시장구분명*/ 
+        , f_corp_nm(itm01_iss_co_cd)                as itm01IssCoNm      /** 발행기관코드명*/
+	   FROM 
+	   		itm01_item
+	   WHERE 1=1
+	   	<include refid="whereCondition"/>
+      ORDER BY itm01_item_cd
+       <if test="offset != null and offset != ''">
+           OFFSET #{offset}
+       </if>
+        <if test="limit != null and limit != ''">
+           LIMIT #{limit}
+        </if>
+   </select>
+
+   
+	<select id="selectCount" parameterType="QueryAttr" resultType="Long">
+   		SELECT 
+   			count(*) as count
+   		FROM
+   			itm01_item
+   		WHERE 1=1
+   			<include refid="whereCondition"/>	
+   </select> 
+
+
+	<select id="selectOne" parameterType="string" resultType="Itm01Item">
+		SELECT 
+		  itm01_item_cd                             as itm01ItemCd       /** 종목코드*/                        
+		, itm01_item_nm                             as itm01ItemNm       /** 종목명*/                         
+		, itm01_item_enm                            as itm01ItemEnm      /** 영문명*/                         
+		, itm01_short_cd                            as itm01ShortCd      /** 단축코드*/                        
+		, itm01_iss_type                            as itm01IssType      /** 발행구분(StkIssType:공모/사모)*/      
+		, itm01_stk_type                            as itm01StkType      /** 증권종류(StkType:보통주/우선주/..)*/    
+		, itm01_list_type                           as itm01ListType     /** 상장구분(ListType:상장/비상장/상장폐지)*/  
+		, itm01_market_type                         as itm01MarketType   /** 시장구분(MarketType:코스피/코스닥/..)*/ 
+		, itm01_par                                 as itm01Par          /** 액면가*/                         
+		, itm01_iss_co_cd                           as itm01IssCoCd      /** 발행기관코드*/
+        , f_com_nm('StkIssType' ,itm01_iss_type   ) as itm01IssTypeNm    /** 발행구분명*/      
+        , f_com_nm('StkType'    ,itm01_stk_type   ) as itm01StkTypeNm    /** 증권종류명*/    
+        , f_com_nm('ListType'   ,itm01_list_type  ) as itm01ListTypeNm   /** 상장구분명*/  
+        , f_com_nm('MarketType' ,itm01_market_type) as itm01MarketTypeNm /** 시장구분명*/ 
+        , f_corp_nm(itm01_iss_co_cd)                as itm01IssCoNm      /** 발행기관코드명*/
+	   FROM 
+	   		itm01_item
+	   WHERE 1=1
+		AND itm01_item_cd = #{itm01ItemCd}
+	</select>
+	
+	<insert id="insert" parameterType="Itm01Item">
+		INSERT INTO 
+			itm01_item (
+			itm01_item_cd, itm01_item_nm, itm01_item_enm, 
+			itm01_short_cd, itm01_iss_type, itm01_stk_type, 
+			itm01_list_type, itm01_market_type, itm01_par, 
+			itm01_iss_co_cd) 
+		VALUES (
+			#{itm01ItemCd}, #{itm01ItemNm}, #{itm01ItemEnm}, 
+			#{itm01ShortCd}, #{itm01IssType}, #{itm01StkType}, 
+			#{itm01ListType}, #{itm01MarketType}, #{itm01Par}, 
+			#{itm01IssCoCd}
+		)
+	</insert>
+
+	<update id="update" parameterType="Itm01Item">
+		UPDATE 
+			itm01_item 
+		SET 
+			itm01_item_cd = #{itm01ItemCd}, 
+			itm01_item_nm = #{itm01ItemNm}, 
+			itm01_item_enm = #{itm01ItemEnm}, 
+			itm01_short_cd = #{itm01ShortCd}, 
+			itm01_iss_type = #{itm01IssType}, 
+			itm01_stk_type = #{itm01StkType}, 
+			itm01_list_type = #{itm01ListType}, 
+			itm01_market_type = #{itm01MarketType}, 
+			itm01_par = #{itm01Par}, 
+			itm01_iss_co_cd = #{itm01IssCoCd} 
+		WHERE 1=1 
+		AND itm01_item_cd = #{itm01ItemCd}
+	</update>
+	
+	<delete id="delete" parameterType="string">
+		DELETE FROM 
+			itm01_item 
+		WHERE 1=1  
+			AND itm01_item_cd = #{itm01ItemCd}
+	</delete>
+
+</mapper>

@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+      "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.kfs.assetedu.repository.Opr01ContRepository">
+   <sql id="whereConditon">
+        AND opr01_status_cd != '9'
+		<!--    검색조건 -->
+   		<if test="opr01ContId != null">
+	       	AND opr01_cont_id = #{opr01ContId}
+		</if>
+		<if test="searchText != null">
+		    AND upper(concat(opr01_fund_nm, opr01_item_nm, opr01_tr_nm, opr01_tr_co_nm)) like concat('%',upper(#{searchText}),'%')
+		</if>
+        <if test="frDate != null and frDate != ''">
+            AND opr01_cont_date <![CDATA[ >= ]]> #{frDate}
+        </if>
+        <if test="toDate != null and toDate != ''">
+            AND opr01_cont_date <![CDATA[ <= ]]> #{toDate}
+        </if>
+        <if test="trType != null">
+            AND ( ( #{trType} = 'BUY'               AND
+                    opr01_tr_cd IN ('1001','1002')  ) OR
+                  ( #{trType} = 'SELL'              AND
+                    opr01_tr_cd IN ('2001','2002')  ) )
+        </if>
+   </sql>
+   
+    <select id="newContId" resultType="String">
+        SELECT f_seq() as newContId
+    </select>
+
+	<select id="selectCount" parameterType="QueryAttr" resultType="Integer">
+   		SELECT 
+   			count(*) as count
+   		FROM
+   			(
+               SELECT opr01_cont.*
+                    , fnd01_fund_nm                     as opr01_fund_nm               
+                    , itm01_item_nm                     as opr01_item_nm               
+                    , f_com_nm('TrCode', opr01_tr_cd)   as opr01_tr_nm       
+                    , f_corp_nm(opr01_tr_co_cd)         as opr01_tr_co_nm
+                 FROM opr01_cont
+                      INNER JOIN fnd01_fund ON fnd01_fund_cd = opr01_fund_cd
+                      INNER JOIN itm01_item ON itm01_item_cd = opr01_item_cd
+             ) t
+   		WHERE 1=1
+   			<include refid="whereConditon"/>
+   </select> 
+   
+<!--    <select id="selectList" parameterType="QueryAttr" resultType="Opr01Cont"> -->
+<!-- 		SELECT *  -->
+<!-- 			FROM ( -->
+<!-- 				SELECT  -->
+<!-- 					opr01_cont_id -->
+<!-- 					,opr01_fund_cd -->
+<!-- 					,opr01_item_cd -->
+<!-- 					,opr01_cont_date -->
+<!-- 					,opr01_tr_cd -->
+<!-- 					,opr01_qty -->
+<!-- 					,opr01_price -->
+<!-- 					,opr01_cont_amt -->
+<!-- 					,opr01_tr_pl -->
+<!-- 					,opr01_fee -->
+<!-- 					,opr01_tax -->
+<!-- 					,opr01_settle_amt -->
+<!-- 					,opr01_settle_date -->
+<!-- 					,opr01_tr_co_cd -->
+<!-- 					,opr01_book_id -->
+<!-- 					,opr01_book_amt -->
+<!-- 					,opr01_status_cd -->
+<!-- 					, fnd01_fund_nm                     as opr01_fund_nm         -->
+<!-- 				    , itm01_item_nm                     as opr01_item_nm                -->
+<!-- 				    , f_com_nm('TrCode', opr01_tr_cd)   as opr01_tr_nm        -->
+<!-- 				    , f_corp_nm(opr01_tr_co_cd)         as opr01_tr_co_nm  -->
+<!-- 				    /*, jnl12_tr_nm						as opr01_tr_nm*/  -->
+<!-- 				FROM opr01_cont  -->
+<!-- 					INNER JOIN fnd01_fund ON fnd01_fund_cd = opr01_fund_cd  -->
+<!-- 					INNER JOIN itm01_item ON itm01_item_cd = opr01_item_cd -->
+<!-- 					INNER JOIN jnl12_tr ON jnl12_tr_cd = opr01_tr_cd  -->
+<!-- 				WHERE 1=1 -->
+<!-- 				 AND opr01_cont_date BETWEEN #{frDate} AND #{toDate} -->
+<!-- 				 AND jnl12_use_page_type = #{pageType}  -->
+<!-- 				 AND opr01_status_cd != '9' /*상태코드9는 취소된 것*/ -->
+<!-- 			) t -->
+<!-- 		WHERE 1=1  -->
+<!-- 		<include refid="whereConditon"> -->
+<!-- 		</include> -->
+<!-- 	</select>    -->
+   
+   
+   <select id="selectList" parameterType="QueryAttr" resultType="Opr01Cont">
+	   SELECT opr01_cont_id             as opr01ContId     /** 체결ID */               
+			, opr01_fund_cd             as opr01FundCd     /** 펀드코드 */               
+			, opr01_item_cd             as opr01ItemCd     /** 종목코드 */               
+			, opr01_cont_date           as opr01ContDate   /** 체결일자 */               
+			, opr01_tr_cd               as opr01TrCd       /** 거래코드(TrCode) */       
+			, opr01_qty                 as opr01Qty        /** 수량 */                 
+			, opr01_price               as opr01Price      /** 단가 */                 
+			, opr01_cont_amt            as opr01ContAmt    /** 체결금액 */               
+			, opr01_tr_pl               as opr01TrPl       /** 매매손익 */               
+			, opr01_fee                 as opr01Fee        /** 수수료 */                
+			, opr01_tax                 as opr01Tax        /** 제세금 */                
+			, opr01_settle_amt          as opr01SettleAmt  /** 결제금액 */               
+			, opr01_settle_date         as opr01SettleDate /** 결제일자 */               
+			, opr01_tr_co_cd            as opr01TrCoCd     /** 매매처코드 */              
+			, opr01_book_id             as opr01BookId     /** 보유ID */
+            , opr01_book_amt            as opr01BookAmt    /** 장부금액 */               
+			, opr01_status_cd           as opr01StatusCd   /** 상태코드(TrStatusCode) */
+            , opr01_fund_nm             as opr01FundNm     /** 펀드명 */               
+            , opr01_item_nm             as opr01ItemNm     /** 종목명 */               
+            , opr01_tr_nm               as opr01TrNm       /** 거래명 */       
+            , opr01_tr_co_nm            as opr01TrCoNm     /** 매매처명 */
+            , to_char(now(),'yyyymmdd') as opr01BizDate    /** 영업일자 */
+	   FROM (
+	           SELECT opr01_cont.*
+		            , fnd01_fund_nm                     as opr01_fund_nm               
+		            , itm01_item_nm                     as opr01_item_nm               
+		            , f_com_nm('TrCode', opr01_tr_cd)   as opr01_tr_nm    /*jsp의 opr01TrNm 이 거래구분*/     
+		            , f_corp_nm(opr01_tr_co_cd)         as opr01_tr_co_nm
+		         FROM opr01_cont
+				   	  INNER JOIN fnd01_fund ON fnd01_fund_cd = opr01_fund_cd
+				   	  INNER JOIN itm01_item ON itm01_item_cd = opr01_item_cd
+             ) t
+	   WHERE 1=1
+	   	<include refid="whereConditon"/>
+	   ORDER BY opr01_cont_date, opr01_cont_id
+		<if test="pageAttr != null and pageAttr.offset != null">
+	      	OFFSET #{pageAttr.offset}
+		</if>   
+		 <if test="pageAttr != null and pageAttr.limit != null">
+		 	LIMIT #{pageAttr.limit}
+		 </if>
+   </select>
+
+
+
+
+   <select id="selectOne" parameterType="Opr01Cont" resultType="Opr01Cont">
+	   SELECT opr01_cont_id             as opr01ContId     /** 체결ID */               
+            , opr01_fund_cd             as opr01FundCd     /** 펀드코드 */               
+            , opr01_item_cd             as opr01ItemCd     /** 종목코드 */               
+            , opr01_cont_date           as opr01ContDate   /** 체결일자 */               
+            , opr01_tr_cd               as opr01TrCd       /** 거래코드(TrCode) */       
+            , opr01_qty                 as opr01Qty        /** 수량 */                 
+            , opr01_price               as opr01Price      /** 단가 */                 
+            , opr01_cont_amt            as opr01ContAmt    /** 체결금액 */               
+            , opr01_tr_pl               as opr01TrPl       /** 매매손익 */               
+            , opr01_fee                 as opr01Fee        /** 수수료 */                
+            , opr01_tax                 as opr01Tax        /** 제세금 */                
+            , opr01_settle_amt          as opr01SettleAmt  /** 결제금액 */               
+            , opr01_settle_date         as opr01SettleDate /** 결제일자 */               
+            , opr01_tr_co_cd            as opr01TrCoCd     /** 매매처코드 */              
+            , opr01_book_id             as opr01BookId     /** 보유ID */
+            , opr01_book_amt            as opr01BookAmt    /** 장부금액 */
+            , opr01_status_cd           as opr01StatusCd   /** 상태코드(TrStatusCode) */
+            , opr01_fund_nm             as opr01FundNm     /** 펀드명 */               
+            , opr01_item_nm             as opr01ItemNm     /** 종목명 */               
+            , opr01_tr_nm               as opr01TrNm       /** 거래명 */       
+            , opr01_tr_co_nm            as opr01TrCoNm     /** 매매처명 */
+            , to_char(now(),'yyyymmdd') as opr01BizDate    /** 영업일자 */   
+       FROM (
+               SELECT opr01_cont.*
+                    , fnd01_fund_nm                     as opr01_fund_nm               
+                    , itm01_item_nm                     as opr01_item_nm               
+                    , f_com_nm('TrCode', opr01_tr_cd)   as opr01_tr_nm     
+                    , f_corp_nm(opr01_tr_co_cd)         as opr01_tr_co_nm
+                 FROM opr01_cont
+                      INNER JOIN fnd01_fund ON fnd01_fund_cd = opr01_fund_cd
+                      INNER JOIN itm01_item ON itm01_item_cd = opr01_item_cd
+             ) t
+	   WHERE 1=1
+		<if test="opr01ContId != null">
+	       	AND opr01_cont_id = #{opr01ContId}
+		</if>
+   </select>
+   
+   <select id="selectByBookId" parameterType="QueryAttr" resultType="Opr01Cont">
+        SELECT opr01_cont_id             as opr01ContId     /** 체결ID */               
+             , opr01_fund_cd             as opr01FundCd     /** 펀드코드 */               
+             , opr01_item_cd             as opr01ItemCd     /** 종목코드 */               
+             , opr01_cont_date           as opr01ContDate   /** 체결일자 */               
+             , opr01_tr_cd               as opr01TrCd       /** 거래코드(TrCode) */       
+             , opr01_qty                 as opr01Qty        /** 수량 */                 
+             , opr01_price               as opr01Price      /** 단가 */                 
+             , opr01_cont_amt            as opr01ContAmt    /** 체결금액 */               
+             , opr01_tr_pl               as opr01TrPl       /** 매매손익 */               
+             , opr01_fee                 as opr01Fee        /** 수수료 */                
+             , opr01_tax                 as opr01Tax        /** 제세금 */                
+             , opr01_settle_amt          as opr01SettleAmt  /** 결제금액 */               
+             , opr01_settle_date         as opr01SettleDate /** 결제일자 */               
+             , opr01_tr_co_cd            as opr01TrCoCd     /** 매매처코드 */              
+             , opr01_book_id             as opr01BookId     /** 보유ID */
+             , opr01_book_amt            as opr01BookAmt    /** 장부금액 */
+             , opr01_status_cd           as opr01StatusCd   /** 상태코드(TrStatusCode) */
+          FROM opr01_cont
+         WHERE opr01_cont_date = #{contDate}
+           AND opr01_book_id   = #{bookId}
+           AND opr01_status_cd = '1' /*(1:처리완료)*/
+         ORDER BY opr01_cont_id
+   </select>
+
+<!--    <insert id="insert" parameterType="Opr01Cont"> -->
+<!--       INSERT INTO opr01_cont -->
+<!--       	( opr01_cont_id, opr01_fund_cd, opr01_item_cd, opr01_cont_date, opr01_tr_cd, opr01_qty, opr01_price, opr01_cont_amt, opr01_tr_pl, opr01_fee, opr01_tax, opr01_settle_amt, opr01_settle_date, opr01_tr_co_cd, opr01_book_id, opr01_book_amt, opr01_status_cd) -->
+<!--       VALUES  -->
+<!--       	( #{opr01ContId},#{opr01FundCd},#{opr01ItemCd},#{opr01ContDate},#{opr01TrCd},#{opr01Qty},#{opr01Price},#{opr01ContAmt},#{opr01TrPl},#{opr01Fee},#{opr01Tax},#{opr01SettleAmt},#{opr01SettleDate},#{opr01TrCoCd},#{opr01BookId},#{opr01BookAmt},#{opr01StatusCd} ) -->
+<!--    </insert>  -->
+
+	<insert id="insert" parameterType="Opr01Cont">
+		INSERT 
+			INTO opr01_cont 
+		SELECT                  
+			 #{opr01ContId   }
+			, #{opr01FundCd   }
+			, #{opr01ItemCd   }
+			, #{opr01ContDate }
+			, #{opr01TrCd     }
+			, #{opr01Qty       }
+			, #{opr01Price     }
+			, #{opr01ContAmt  }
+			, #{opr01TrPl     }
+			, #{opr01Fee       }
+			, #{opr01Tax       }
+			, #{opr01SettleAmt}
+			, #{opr01SettleDate}
+			, #{opr01TrCoCd  }
+			, #{opr01BookId   }
+			, #{opr01BookAmt  }
+			, #{opr01StatusCd }
+	</insert>
+
+
+	<select id="getNewSeq" resultType="String">
+		SELECT f_seq()
+	</select>
+   
+   
+   
+   
+   
+   <update id="update" parameterType="Opr01Cont">
+      UPDATE  
+      	opr01_cont 
+      SET
+		opr01_cont_id     = #{opr01ContId} ,     /** 체결ID*/               
+		opr01_fund_cd     = #{opr01FundCd} ,     /** 펀드코드*/               
+		opr01_item_cd     = #{opr01ItemCd} ,     /** 종목코드*/               
+		opr01_cont_date   = #{opr01ContDate} ,   /** 체결일자*/               
+		opr01_tr_cd       = #{opr01TrCd} ,       /** 거래코드(TrCode)*/       
+		opr01_qty         = #{opr01Qty} ,        /** 수량*/                 
+		opr01_price       = #{opr01Price} ,      /** 단가*/                 
+		opr01_cont_amt    = #{opr01ContAmt} ,    /** 체결금액*/               
+		opr01_tr_pl       = #{opr01TrPl} ,       /** 매매손익*/               
+		opr01_fee         = #{opr01Fee} ,        /** 수수료*/                
+		opr01_tax         = #{opr01Tax} ,        /** 제세금*/                
+		opr01_settle_amt  = #{opr01SettleAmt} ,  /** 결제금액*/               
+		opr01_settle_date = #{opr01SettleDate} , /** 결제일자*/               
+		opr01_tr_co_cd    = #{opr01TrCoCd} ,     /** 매매처코드*/              
+		opr01_book_id     = #{opr01BookId} ,     /** 보유ID*/
+        opr01_book_amt    = #{opr01BookAmt} ,    /** 장부금액*/
+		opr01_status_cd   = #{opr01StatusCd}     /** 상태코드(TrStatusCode)*/
+      WHERE 1=1
+	     AND opr01_cont_id = #{opr01ContId}
+   </update>
+
+   <delete id="delete" parameterType="Opr01Cont">
+<!--       DELETE FROM -->
+<!--       	opr01_cont -->
+<!--       WHERE 1=1 -->
+<!--       	 AND opr01_cont_id = #{opr01ContId} -->
+   </delete>    
+   
+   
+
+</mapper>
